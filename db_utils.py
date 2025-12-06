@@ -83,6 +83,52 @@ def init_database():
             ON feedback(username)
         """)
         
+        # Support Tickets table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS support_tickets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ticket_id TEXT UNIQUE NOT NULL,
+                username TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                status TEXT DEFAULT 'open',
+                priority TEXT DEFAULT 'medium',
+                category TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                resolved_at TEXT,
+                resolved_by TEXT,
+                admin_notes TEXT
+            )
+        """)
+        
+        # Ticket Messages table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ticket_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ticket_id TEXT NOT NULL,
+                sender TEXT NOT NULL,
+                message TEXT NOT NULL,
+                timestamp TEXT NOT NULL,
+                FOREIGN KEY (ticket_id) REFERENCES support_tickets(ticket_id)
+            )
+        """)
+        
+        # Create indexes for tickets
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_tickets_username 
+            ON support_tickets(username)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_tickets_status 
+            ON support_tickets(status)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket_id 
+            ON ticket_messages(ticket_id)
+        """)
+        
         conn.commit()
         logging.info("Database initialized successfully")
     except Exception as e:
@@ -791,6 +837,408 @@ def admin_get_all_users_summary():
             })
         
         return users
+    finally:
+        conn.close()
+
+
+# ============================================
+# ROLE MANAGEMENT FUNCTIONS
+# ============================================
+
+def load_roles():
+    """Load job roles from roles.json"""
+    try:
+        with open('roles.json', 'r') as f:
+            data = json.load(f)
+            roles_data = data.get('roles', {})
+            
+            # Convert old format (list) to new format (dict with skills and default_attempts)
+            converted_roles = {}
+            for role_name, role_info in roles_data.items():
+                if isinstance(role_info, list):
+                    # Old format - convert to new format
+                    converted_roles[role_name] = {
+                        'skills': role_info,
+                        'default_attempts': 3
+                    }
+                else:
+                    # Already in new format
+                    converted_roles[role_name] = role_info
+            
+            return converted_roles
+    except FileNotFoundError:
+        # Return default roles if file doesn't exist
+        return {
+            "Java Developer": {"skills": ["Core Java", "Spring / Spring Boot", "Concurrency / Multithreading", "Maven / Gradle", "REST / Web APIs", "JPA / SQL", "Testing (JUnit)"], "default_attempts": 3},
+            "Database Administrator": {"skills": ["PostgreSQL / MySQL", "Backup & Recovery", "Replication / HA", "Performance Tuning", "Security", "Monitoring"], "default_attempts": 3},
+            "Frontend Developer": {"skills": ["HTML / CSS / JS", "React / Angular / Vue", "State Management", "Accessibility", "Responsive Design", "Testing (Jest)"], "default_attempts": 3},
+            "DevOps Engineer": {"skills": ["Docker", "Kubernetes", "CI/CD", "Terraform / IaC", "Monitoring / Logging", "Linux / Scripting"], "default_attempts": 3},
+            "Data Engineer": {"skills": ["Python / Scala", "ETL / Data Pipelines", "Spark", "Airflow", "Data Modeling", "SQL"], "default_attempts": 3},
+            "Python Developer": {"skills": ["Core Python", "Flask / Django", "Async IO", "Testing (pytest)", "APIs", "Data Structures"], "default_attempts": 3}
+        }
+    except Exception as e:
+        logging.error(f"Error loading roles: {str(e)}")
+        return {}
+
+def get_role_skills(role_name):
+    """Get skills for a specific role"""
+    roles = load_roles()
+    role_info = roles.get(role_name, {})
+    if isinstance(role_info, dict):
+        return role_info.get('skills', [])
+    return role_info  # Fallback for old format
+
+def get_role_default_attempts(role_name):
+    """Get default attempts for a specific role"""
+    roles = load_roles()
+    role_info = roles.get(role_name, {})
+    if isinstance(role_info, dict):
+        return role_info.get('default_attempts', 3)
+    return 3  # Fallback
+
+def save_roles(roles):
+    """Save job roles to roles.json"""
+    try:
+        with open('roles.json', 'w') as f:
+            json.dump({'roles': roles}, f, indent=2)
+        return {'success': True, 'message': 'Roles saved successfully'}
+    except Exception as e:
+        logging.error(f"Error saving roles: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+def add_role(role_name, skills, default_attempts=3):
+    """Add a new job role"""
+    try:
+        roles = load_roles()
+        if role_name in roles:
+            return {'success': False, 'error': f'Role "{role_name}" already exists'}
+        
+        roles[role_name] = {
+            'skills': skills,
+            'default_attempts': default_attempts
+        }
+        result = save_roles(roles)
+        return result
+    except Exception as e:
+        logging.error(f"Error adding role: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+def remove_role(role_name):
+    """Remove a job role"""
+    try:
+        roles = load_roles()
+        if role_name not in roles:
+            return {'success': False, 'error': f'Role "{role_name}" not found'}
+        
+        del roles[role_name]
+        result = save_roles(roles)
+        return result
+    except Exception as e:
+        logging.error(f"Error removing role: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+def update_role(role_name, skills=None, default_attempts=None):
+    """Update skills and/or default attempts for a role"""
+    try:
+        roles = load_roles()
+        if role_name not in roles:
+            return {'success': False, 'error': f'Role "{role_name}" not found'}
+        
+        role_info = roles[role_name]
+        if isinstance(role_info, list):
+            role_info = {'skills': role_info, 'default_attempts': 3}
+        
+        if skills is not None:
+            role_info['skills'] = skills
+        if default_attempts is not None:
+            role_info['default_attempts'] = default_attempts
+        
+        roles[role_name] = role_info
+        result = save_roles(roles)
+        return result
+    except Exception as e:
+        logging.error(f"Error updating role: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+def set_user_role_attempts(username, role_name, attempts):
+    """Set how many times a specific user can attempt a specific role"""
+    try:
+        users = load_users()
+        if username not in users:
+            return {'success': False, 'error': f'User "{username}" not found'}
+        
+        user = users[username]
+        eval_chances = user.get('eval_chances', {})
+        
+        if attempts < 0:
+            return {'success': False, 'error': 'Attempts must be >= 0'}
+        
+        eval_chances[role_name] = attempts
+        user['eval_chances'] = eval_chances
+        users[username] = user
+        
+        save_users(users)
+        return {'success': True, 'message': f'Set {username} attempts for {role_name} to {attempts}'}
+    except Exception as e:
+        logging.error(f"Error setting user role attempts: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+def get_user_role_attempts(username, role_name):
+    """Get how many times a specific user can attempt a specific role"""
+    try:
+        users = load_users()
+        if username not in users:
+            return None
+        
+        user = users[username]
+        eval_chances = user.get('eval_chances', {})
+        
+        # If user has specific setting, return it
+        if role_name in eval_chances:
+            return eval_chances[role_name]
+        
+        # Otherwise return default from role
+        return get_role_default_attempts(role_name)
+    except Exception as e:
+        logging.error(f"Error getting user role attempts: {str(e)}")
+        return 3  # Fallback
+
+
+# --------------------------------
+# Support Ticket Management Functions
+# --------------------------------
+
+def create_ticket(username: str, subject: str, category: str = 'general', priority: str = 'medium') -> Dict:
+    """Create a new support ticket"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        # Generate unique ticket ID
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        ticket_id = f"TKT-{timestamp}-{username[:3].upper()}"
+        
+        now = datetime.now().isoformat()
+        
+        cursor.execute("""
+            INSERT INTO support_tickets 
+            (ticket_id, username, subject, status, priority, category, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (ticket_id, username, subject, 'open', priority, category, now, now))
+        
+        conn.commit()
+        logging.info(f"Created ticket {ticket_id} for user {username}")
+        return {'success': True, 'ticket_id': ticket_id}
+    except Exception as e:
+        logging.error(f"Error creating ticket: {e}")
+        conn.rollback()
+        return {'success': False, 'error': str(e)}
+    finally:
+        conn.close()
+
+def add_ticket_message(ticket_id: str, sender: str, message: str) -> bool:
+    """Add a message to a ticket"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        timestamp = datetime.now().isoformat()
+        
+        cursor.execute("""
+            INSERT INTO ticket_messages (ticket_id, sender, message, timestamp)
+            VALUES (?, ?, ?, ?)
+        """, (ticket_id, sender, message, timestamp))
+        
+        # Update ticket's updated_at timestamp
+        cursor.execute("""
+            UPDATE support_tickets 
+            SET updated_at = ?
+            WHERE ticket_id = ?
+        """, (timestamp, ticket_id))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        logging.error(f"Error adding ticket message: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def load_tickets(status: Optional[str] = None, username: Optional[str] = None) -> List[Dict]:
+    """Load tickets with optional filtering"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        query = "SELECT * FROM support_tickets"
+        params = []
+        
+        conditions = []
+        if status:
+            conditions.append("status = ?")
+            params.append(status)
+        if username:
+            conditions.append("username = ?")
+            params.append(username)
+        
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+        
+        query += " ORDER BY created_at DESC"
+        
+        cursor.execute(query, params)
+        rows = cursor.fetchall()
+        
+        tickets = []
+        for row in rows:
+            tickets.append({
+                'id': row['id'],
+                'ticket_id': row['ticket_id'],
+                'username': row['username'],
+                'subject': row['subject'],
+                'status': row['status'],
+                'priority': row['priority'],
+                'category': row['category'],
+                'created_at': row['created_at'],
+                'updated_at': row['updated_at'],
+                'resolved_at': row['resolved_at'],
+                'resolved_by': row['resolved_by'],
+                'admin_notes': row['admin_notes']
+            })
+        
+        return tickets
+    except Exception as e:
+        logging.error(f"Error loading tickets: {e}")
+        return []
+    finally:
+        conn.close()
+
+def load_ticket_messages(ticket_id: str) -> List[Dict]:
+    """Load all messages for a ticket"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT * FROM ticket_messages 
+            WHERE ticket_id = ? 
+            ORDER BY timestamp ASC
+        """, (ticket_id,))
+        
+        rows = cursor.fetchall()
+        
+        messages = []
+        for row in rows:
+            messages.append({
+                'id': row['id'],
+                'ticket_id': row['ticket_id'],
+                'sender': row['sender'],
+                'message': row['message'],
+                'timestamp': row['timestamp']
+            })
+        
+        return messages
+    except Exception as e:
+        logging.error(f"Error loading ticket messages: {e}")
+        return []
+    finally:
+        conn.close()
+
+def update_ticket_status(ticket_id: str, status: str, admin_notes: Optional[str] = None, resolved_by: Optional[str] = None) -> bool:
+    """Update ticket status and optionally add admin notes"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        now = datetime.now().isoformat()
+        
+        if status in ['resolved', 'closed']:
+            cursor.execute("""
+                UPDATE support_tickets 
+                SET status = ?, updated_at = ?, resolved_at = ?, resolved_by = ?, admin_notes = ?
+                WHERE ticket_id = ?
+            """, (status, now, now, resolved_by, admin_notes, ticket_id))
+        else:
+            cursor.execute("""
+                UPDATE support_tickets 
+                SET status = ?, updated_at = ?, admin_notes = ?
+                WHERE ticket_id = ?
+            """, (status, now, admin_notes, ticket_id))
+        
+        conn.commit()
+        logging.info(f"Updated ticket {ticket_id} to status {status}")
+        return True
+    except Exception as e:
+        logging.error(f"Error updating ticket status: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def get_ticket_by_id(ticket_id: str) -> Optional[Dict]:
+    """Get a single ticket by ID"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("SELECT * FROM support_tickets WHERE ticket_id = ?", (ticket_id,))
+        row = cursor.fetchone()
+        
+        if row:
+            return {
+                'id': row['id'],
+                'ticket_id': row['ticket_id'],
+                'username': row['username'],
+                'subject': row['subject'],
+                'status': row['status'],
+                'priority': row['priority'],
+                'category': row['category'],
+                'created_at': row['created_at'],
+                'updated_at': row['updated_at'],
+                'resolved_at': row['resolved_at'],
+                'resolved_by': row['resolved_by'],
+                'admin_notes': row['admin_notes']
+            }
+        return None
+    except Exception as e:
+        logging.error(f"Error getting ticket: {e}")
+        return None
+    finally:
+        conn.close()
+
+def get_user_tickets(username: str) -> List[Dict]:
+    """Get all tickets for a specific user"""
+    return load_tickets(username=username)
+
+def get_ticket_stats() -> Dict:
+    """Get statistics about support tickets"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        stats = {}
+        
+        # Total tickets
+        cursor.execute("SELECT COUNT(*) as count FROM support_tickets")
+        stats['total'] = cursor.fetchone()['count']
+        
+        # Open tickets
+        cursor.execute("SELECT COUNT(*) as count FROM support_tickets WHERE status = 'open'")
+        stats['open'] = cursor.fetchone()['count']
+        
+        # In progress tickets
+        cursor.execute("SELECT COUNT(*) as count FROM support_tickets WHERE status = 'in_progress'")
+        stats['in_progress'] = cursor.fetchone()['count']
+        
+        # Resolved tickets
+        cursor.execute("SELECT COUNT(*) as count FROM support_tickets WHERE status IN ('resolved', 'closed')")
+        stats['resolved'] = cursor.fetchone()['count']
+        
+        return stats
+    except Exception as e:
+        logging.error(f"Error getting ticket stats: {e}")
+        return {'total': 0, 'open': 0, 'in_progress': 0, 'resolved': 0}
     finally:
         conn.close()
 

@@ -212,7 +212,7 @@
     let evaluationConfig = {};
 
     // Store user skills from profile
-    const userSkills = {{ user_skills| tojson | safe }} || [];
+    const userSkills = {{ user_skills | tojson | safe }} || [];
 
     // Role-specific skill keywords for filtering
     const roleSkillKeywords = {
@@ -441,7 +441,7 @@
         const timeTaken = Math.floor((Date.now() - startTime) / 1000);
 
         // Save evaluation
-        await fetch('/api/save-evaluation', {
+        const saveResponse = await fetch('/api/save-evaluation', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -453,6 +453,8 @@
                 qa_history: answers
             })
         });
+
+        const saveData = await saveResponse.json();
 
         // Show results
         document.getElementById('evaluationSection').style.display = 'none';
@@ -471,16 +473,63 @@
                 '<h3 style="color: var(--warning);">👍 Good Performance</h3><p>Recommended with some upskilling in specific areas. Shows potential.</p>' :
                 '<h3 style="color: var(--danger);">📚 Needs Improvement</h3><p>Consider additional training and practice before reapplying.</p>';
 
-        document.getElementById('recommendation').innerHTML = recommendation;
+        // Add email notification if email was sent
+        let emailNotification = '';
+        if (saveData.email_sent && saveData.user_email) {
+            emailNotification = `
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(76, 175, 80, 0.1); border-left: 4px solid var(--success); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fas fa-envelope" style="font-size: 1.5rem; color: var(--success);"></i>
+                        <div>
+                            <strong style="color: var(--success);">📧 Report Emailed!</strong>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem; color: var(--text-secondary);">
+                                A complete detailed feedback report has been sent to <strong>${saveData.user_email}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        document.getElementById('recommendation').innerHTML = recommendation + emailNotification;
     }
 
-    // TTS Button
+    // Language mapping for Text-to-Speech
+    const languageMap = {
+        'English': 'en-US',
+        'Hindi': 'hi-IN',
+        'Spanish': 'es-ES',
+        'German': 'de-DE',
+        'French': 'fr-FR'
+    };
+
+    // TTS Button with multi-language support
     document.getElementById('ttsButton').addEventListener('click', () => {
         const text = document.getElementById('questionContent').textContent;
         const utterance = new SpeechSynthesisUtterance(text);
+
+        // Set language based on user's selection
+        const selectedLanguage = evaluationConfig.language || 'English';
+        utterance.lang = languageMap[selectedLanguage] || 'en-US';
+
         utterance.rate = 0.9;
         utterance.pitch = 1;
+
+        // Stop any ongoing speech
+        speechSynthesis.cancel();
+
+        // Speak the question
         speechSynthesis.speak(utterance);
+
+        // Visual feedback
+        const ttsButton = document.getElementById('ttsButton');
+        ttsButton.innerHTML = '<i class="fas fa-volume-up"></i> Speaking...';
+        ttsButton.disabled = true;
+
+        utterance.onend = () => {
+            ttsButton.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Question';
+            ttsButton.disabled = false;
+        };
     });
 
     // Voice Input with Speech Recognition

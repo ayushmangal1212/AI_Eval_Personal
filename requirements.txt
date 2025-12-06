@@ -1,0 +1,8 @@
+streamlit
+dotenv
+langchain-openai
+langchain-core
+httpx
+audio-recorder-streamlit
+PyPDF2
+python-docx

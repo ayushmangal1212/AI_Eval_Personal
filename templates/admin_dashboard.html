@@ -50,7 +50,66 @@
             </div>
         </div>
 
-        <!-- Users Table -->
+        <!-- Role Management -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h2 class="card-title">💼 Job Roles Management</h2>
+                <p class="card-subtitle">Add, edit, or remove job roles available for evaluations</p>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem;">Add New Role</h3>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <input type="text" id="newRoleName" placeholder="Role name (e.g., Senior Developer)"
+                        style="flex: 1; min-width: 250px; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 6px; background: var(--bg-input); color: var(--text-primary);">
+                    <button class="btn btn-primary" onclick="showAddRoleModal()" style="padding: 0.75rem 1.5rem;">
+                        <i class="fas fa-plus"></i> Add Role
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 1rem;">Current Roles ({{ roles|length }})</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+                    {% for role_name, role_info in roles.items() %}
+                    {% set skills = role_info.skills if role_info.skills is defined else role_info %}
+                    {% set default_attempts = role_info.default_attempts if role_info.default_attempts is defined else 3
+                    %}
+                    <div
+                        style="border: 1px solid var(--glass-border); border-radius: 8px; padding: 1rem; background: var(--bg-card-hover);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0;">{{ role_name }}</h4>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                    📊 Default Attempts: <strong>{{ default_attempts }}</strong>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-outline" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;"
+                                    onclick="showEditRoleModal('{{ role_name }}', {{ skills|tojson }}, {{ default_attempts }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline"
+                                    style="padding: 0.4rem 0.6rem; font-size: 0.8rem; color: #ff6b6b;"
+                                    onclick="deleteRole('{{ role_name }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                            <strong>Skills:</strong> {{ skills|length }} items
+                            <div style="margin-top: 0.5rem; max-height: 80px; overflow-y: auto; font-size: 0.8rem;">
+                                {% for skill in skills %}
+                                <div style="padding: 0.25rem 0; color: var(--text-secondary);">• {{ skill }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
         <div class="card" style="margin-bottom: 2rem;">
             <div class="card-header">
                 <h2 class="card-title">👥 Registered Users</h2>
@@ -115,13 +174,29 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Download Users Data Button -->
+            <div
+                style="padding: 1.5rem; border-top: 1px solid var(--glass-border); background: var(--bg-card-hover); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: var(--text-primary);">
+                        <i class="fas fa-file-excel"></i> Export User Data
+                    </h3>
+                    <p style="margin: 0; font-size: 0.875rem; color: var(--text-secondary);">
+                        Download all users' information including evaluations and statistics in Excel format
+                    </p>
+                </div>
+                <a href="{{ url_for('download_users_data') }}" class="btn btn-primary" download>
+                    <i class="fas fa-download"></i> Download Excel
+                </a>
+            </div>
         </div>
 
         <!-- Recent Evaluations -->
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">📊 Recent Evaluations</h2>
-                <p class="card-subtitle">Latest assessment results across all users</p>
+                <p class="card-subtitle">10 most recent assessment results across all users</p>
             </div>
 
             <div style="overflow-x: auto;">
@@ -149,35 +224,28 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% set all_evals = [] %}
-                        {% for username, evals in history.items() %}
-                        {% for eval in evals %}
-                        {% set _ = all_evals.append({'username': username, 'eval': eval}) %}
-                        {% endfor %}
-                        {% endfor %}
-
-                        {% for item in all_evals|reverse %}
+                        {% for item in recent_history %}
                         <tr style="border-bottom: 1px solid var(--glass-border); transition: var(--transition-fast);"
                             onmouseover="this.style.background='var(--bg-card-hover)'"
                             onmouseout="this.style.background='transparent'">
                             <td style="padding: 1rem;"><strong>{{ item.username }}</strong></td>
                             <td style="padding: 1rem;">
-                                {{ item.eval.date.split('T')[0] if 'T' in item.eval.date else item.eval.date[:10] }}
+                                {{ item.date.split('T')[0] if 'T' in item.date else item.date[:10] }}
                             </td>
-                            <td style="padding: 1rem;">{{ item.eval.role }}</td>
-                            <td style="padding: 1rem;">{{ item.eval.score }}/{{ item.eval.max_score }}</td>
+                            <td style="padding: 1rem;">{{ item.role }}</td>
+                            <td style="padding: 1rem;">{{ item.score }}/{{ item.max_score }}</td>
                             <td style="padding: 1rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     <div class="progress-bar" style="width: 100px; height: 6px;">
-                                        <div class="progress-fill" style="width: {{ item.eval.percentage }}%;"></div>
+                                        <div class="progress-fill" style="width: {{ item.percentage }}%;"></div>
                                     </div>
-                                    <span style="font-weight: 600;">{{ "%.1f"|format(item.eval.percentage) }}%</span>
+                                    <span style="font-weight: 600;">{{ "%.1f"|format(item.percentage) }}%</span>
                                 </div>
                             </td>
                             <td style="padding: 1rem;">
-                                {% if item.eval.percentage >= 80 %}
+                                {% if item.percentage >= 80 %}
                                 <span class="badge badge-success">✅ Excellent</span>
-                                {% elif item.eval.percentage >= 60 %}
+                                {% elif item.percentage >= 60 %}
                                 <span class="badge badge-warning">👍 Good</span>
                                 {% else %}
                                 <span class="badge badge-danger">⚠️ Needs Improvement</span>
@@ -185,6 +253,157 @@
                             </td>
                         </tr>
                         {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pending Feedback -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h2 class="card-title">💬 Pending Feedback</h2>
+                <p class="card-subtitle">User feedback awaiting admin review and action</p>
+            </div>
+
+            <div style="overflow-x: auto;">
+                {% if pending_feedback|length > 0 %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--glass-border);">
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                User</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Date</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Role</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Message</th>
+                            <th
+                                style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in pending_feedback %}
+                        <tr style="border-bottom: 1px solid var(--glass-border); transition: var(--transition-fast);"
+                            onmouseover="this.style.background='var(--bg-card-hover)'"
+                            onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem;"><strong>{{ item.username }}</strong></td>
+                            <td style="padding: 1rem;">
+                                {{ item.date.split('T')[0] if 'T' in item.date else item.date[:10] }}
+                            </td>
+                            <td style="padding: 1rem;">{{ item.role if item.role else 'N/A' }}</td>
+                            <td style="padding: 1rem; max-width: 300px;">
+                                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                    title="{{ item.message }}">
+                                    {{ item.message }}
+                                </div>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                        onclick="showResolveFeedbackModal('{{ item.username }}', '{{ item.date }}', '{{ item.role if item.role else '' }}', {{ item.skills|tojson|safe }}, '{{ item.message|replace('\'', '\\\'')|replace('\n', ' ') }}')">
+                                        <i class="fas fa-check"></i> Resolve
+                                    </button>
+                                    <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                        onclick="closeFeedback('{{ item.username }}', '{{ item.date }}')">
+                                        <i class="fas fa-times"></i> Close
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+                    <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <p style="font-size: 1.1rem;">No pending feedback at the moment</p>
+                    <p style="font-size: 0.9rem;">All feedback has been reviewed and resolved</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Support Tickets Section -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2 class="card-title">🎫 Support Tickets</h2>
+                    <p class="card-subtitle">Manage user support requests and issues</p>
+                </div>
+                <div id="ticketStats" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Ticket Filters -->
+            <div
+                style="padding: 1rem; border-bottom: 1px solid var(--glass-border); display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button class="btn btn-outline ticket-filter-btn active" data-status="all"
+                    onclick="filterTickets('all')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    All Tickets
+                </button>
+                <button class="btn btn-outline ticket-filter-btn" data-status="open" onclick="filterTickets('open')"
+                    style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    <i class="fas fa-folder-open"></i> Open
+                </button>
+                <button class="btn btn-outline ticket-filter-btn" data-status="in_progress"
+                    onclick="filterTickets('in_progress')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    <i class="fas fa-spinner"></i> In Progress
+                </button>
+                <button class="btn btn-outline ticket-filter-btn" data-status="resolved"
+                    onclick="filterTickets('resolved')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    <i class="fas fa-check-circle"></i> Resolved
+                </button>
+                <button class="btn btn-outline ticket-filter-btn" data-status="closed" onclick="filterTickets('closed')"
+                    style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    <i class="fas fa-times-circle"></i> Closed
+                </button>
+            </div>
+
+            <!-- Tickets Table -->
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--glass-border);">
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Ticket ID</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                User</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Subject</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Category</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Priority</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Status</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Created</th>
+                            <th
+                                style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody">
+                        <tr>
+                            <td colspan="8" style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                <p>Loading tickets...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -233,6 +452,16 @@
                         <p><strong>Attempts:</strong> ${profile.eval_taken_counts || '0'}</p>
                     </div>
                 `);
+
+                // Replace close button with custom buttons
+                const modal = document.querySelector('#modalContainer .card');
+                const buttonDiv = modal.querySelector('div[style*="text-align: right"]');
+                buttonDiv.innerHTML = `
+                    <button class="btn btn-primary" onclick="manageUserRoleAttempts('${username}')" style="margin-right: 0.5rem;">
+                        <i class="fas fa-lock"></i> Manage Attempts
+                    </button>
+                    <button class="btn btn-outline" onclick="closeModal()">Close</button>
+                `;
             } else {
                 alert('Failed to load profile');
             }
@@ -336,6 +565,753 @@
     // Close Modal
     function closeModal() {
         document.getElementById('modalContainer').innerHTML = '';
+    }
+
+    // ============================================
+    // ROLE MANAGEMENT FUNCTIONS
+    // ============================================
+
+    // Show Add Role Modal
+    function showAddRoleModal() {
+        const roleName = document.getElementById('newRoleName').value.trim();
+        if (!roleName) {
+            alert('Please enter a role name');
+            return;
+        }
+
+        let skillsHtml = `
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem;">
+                    <strong>Role Name:</strong> ${roleName}
+                </label>
+                <label style="display: block; margin-bottom: 1rem;">
+                    <strong>Skills (one per line):</strong><br>
+                    <textarea id="roleSkillsInput" style="width: 100%; height: 150px; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); font-family: monospace; margin-top: 0.5rem;" placeholder="Skill 1&#10;Skill 2&#10;Skill 3"></textarea>
+                </label>
+                <label style="display: block; margin-bottom: 1rem;">
+                    <strong>Default Attempts per User:</strong><br>
+                    <input type="number" id="roleDefaultAttemptsInput" value="3" min="0"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); margin-top: 0.5rem;">
+                </label>
+            </div>
+        `;
+
+        showModal('Add New Role', skillsHtml);
+
+        // Replace close button with Save/Cancel
+        const modal = document.querySelector('#modalContainer .card');
+        const buttonDiv = modal.querySelector('div[style*="text-align: right"]');
+        buttonDiv.innerHTML = `
+            <button class="btn btn-primary" onclick="saveNewRole('${roleName}')" style="margin-right: 0.5rem;">
+                <i class="fas fa-save"></i> Save
+            </button>
+            <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        `;
+    }
+
+    // Save New Role
+    async function saveNewRole(roleName) {
+        const skillsText = document.getElementById('roleSkillsInput').value.trim();
+        const skills = skillsText.split('\n').map(s => s.trim()).filter(s => s);
+        const defaultAttempts = parseInt(document.getElementById('roleDefaultAttemptsInput').value) || 3;
+
+        if (!skills.length) {
+            alert('Please add at least one skill');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/roles/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    role_name: roleName,
+                    skills: skills,
+                    default_attempts: defaultAttempts
+                })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ Role "${roleName}" added successfully`);
+                document.getElementById('newRoleName').value = '';
+                location.reload();
+            } else {
+                alert(`❌ ${data.error || 'Failed to add role'}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding role');
+        }
+        closeModal();
+    }
+
+    // Show Edit Role Modal
+    function showEditRoleModal(roleName, skills, defaultAttempts = 3) {
+        let skillsHtml = `
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 0.5rem;">
+                    <strong>Role Name:</strong> ${roleName}
+                </label>
+                <label style="display: block; margin-bottom: 1rem;">
+                    <strong>Skills (one per line):</strong><br>
+                    <textarea id="editRoleSkillsInput" style="width: 100%; height: 150px; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); font-family: monospace; margin-top: 0.5rem;">${skills.join('\n')}</textarea>
+                </label>
+                <label style="display: block; margin-bottom: 1rem;">
+                    <strong>Default Attempts per User:</strong><br>
+                    <input type="number" id="editRoleDefaultAttemptsInput" value="${defaultAttempts}" min="0"
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 6px; background: var(--bg-input); color: var(--text-primary); margin-top: 0.5rem;">
+                </label>
+            </div>
+        `;
+
+        showModal(`Edit Role: ${roleName}`, skillsHtml);
+
+        // Replace close button with Update/Cancel
+        const modal = document.querySelector('#modalContainer .card');
+        const buttonDiv = modal.querySelector('div[style*="text-align: right"]');
+        buttonDiv.innerHTML = `
+            <button class="btn btn-primary" onclick="updateRole('${roleName}')" style="margin-right: 0.5rem;">
+                <i class="fas fa-save"></i> Update
+            </button>
+            <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        `;
+    }
+
+    // Update Role
+    async function updateRole(roleName) {
+        const skillsText = document.getElementById('editRoleSkillsInput').value.trim();
+        const skills = skillsText.split('\n').map(s => s.trim()).filter(s => s);
+        const defaultAttempts = parseInt(document.getElementById('editRoleDefaultAttemptsInput').value) || 3;
+
+        if (!skills.length) {
+            alert('Please add at least one skill');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/roles/${encodeURIComponent(roleName)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    skills: skills,
+                    default_attempts: defaultAttempts
+                })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ Role "${roleName}" updated successfully`);
+                location.reload();
+            } else {
+                alert(`❌ ${data.error || 'Failed to update role'}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error updating role');
+        }
+        closeModal();
+    }
+
+    // Delete Role
+    async function deleteRole(roleName) {
+        if (!confirm(`Are you sure you want to delete the role "${roleName}"?\n\nThis action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/roles/${encodeURIComponent(roleName)}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ Role "${roleName}" deleted successfully`);
+                location.reload();
+            } else {
+                alert(`❌ ${data.error || 'Failed to delete role'}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error deleting role');
+        }
+    }
+
+    // ============================================
+    // USER ROLE ATTEMPTS MANAGEMENT
+    // ============================================
+
+    // Manage User Role Attempts
+    async function manageUserRoleAttempts(username) {
+        try {
+            const response = await fetch(`/api/admin/user/${username}/role-attempts`);
+            const data = await response.json();
+
+            if (data.success) {
+                const attempts = data.attempts;
+                let html = `
+                    <div style="text-align: left; max-height: 500px; overflow-y: auto;">
+                        <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                            <strong>Set evaluation attempt limits for each role:</strong>
+                        </p>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--glass-border);">
+                                    <th style="padding: 0.75rem; text-align: left;">Role</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Default</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Custom</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                for (const [role, info] of Object.entries(attempts)) {
+                    html += `
+                        <tr style="border-bottom: 1px solid var(--glass-border); padding: 0.5rem;">
+                            <td style="padding: 0.75rem;"><strong>${role}</strong></td>
+                            <td style="padding: 0.75rem; text-align: center;">${info.default_attempts}</td>
+                            <td style="padding: 0.75rem; text-align: center;">
+                                <input type="number" id="attempts_${role}" value="${info.user_attempts}" 
+                                       style="width: 60px; padding: 0.5rem; border: 1px solid var(--glass-border); border-radius: 4px; background: var(--bg-input); color: var(--text-primary);">
+                            </td>
+                            <td style="padding: 0.75rem; text-align: center;">
+                                <button class="btn btn-outline" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" 
+                                        onclick="setRoleAttempts('${username}', '${role}')">
+                                    <i class="fas fa-save"></i> Set
+                                </button>
+                                ${info.is_custom ? `
+                                    <button class="btn btn-outline" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" 
+                                            onclick="resetRoleAttempts('${username}', '${role}')">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                showModal(`Manage Evaluation Attempts - ${username}`, html);
+
+                // Replace button with close only
+                const modal = document.querySelector('#modalContainer .card');
+                const buttonDiv = modal.querySelector('div[style*="text-align: right"]');
+                buttonDiv.innerHTML = `
+                    <button class="btn btn-outline" onclick="closeModal()">Close</button>
+                `;
+            } else {
+                alert('Failed to load role attempts');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error loading role attempts');
+        }
+    }
+
+    // Set Role Attempts for User
+    async function setRoleAttempts(username, role) {
+        const attemptsInput = document.getElementById(`attempts_${role}`);
+        const attempts = parseInt(attemptsInput.value);
+
+        if (isNaN(attempts) || attempts < 0) {
+            alert('Please enter a valid number >= 0');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/user/${username}/role-attempts/${encodeURIComponent(role)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attempts: attempts })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ ${data.message}`);
+            } else {
+                alert(`❌ ${data.error || 'Failed to set attempts'}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error setting attempts');
+        }
+    }
+
+    // Reset Role Attempts for User
+    async function resetRoleAttempts(username, role) {
+        if (!confirm(`Reset ${role} attempts for ${username} to default?`)) return;
+
+        try {
+            const response = await fetch(`/api/admin/user/${username}/role-attempts/${encodeURIComponent(role)}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ ${data.message}`);
+                // Refresh the modal
+                closeModal();
+                manageUserRoleAttempts(username);
+            } else {
+                alert(`❌ ${data.error || 'Failed to reset attempts'}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error resetting attempts');
+        }
+    }
+
+    // ============================================
+    // Feedback Management Functions
+    // ============================================
+
+    // Show modal to resolve feedback with admin comment
+    function showResolveFeedbackModal(username, date, role, skills, message) {
+        const modal = document.getElementById('modalContainer');
+
+        // Format skills list
+        const skillsList = skills && skills.length > 0
+            ? skills.map(skill => `<span class="badge badge-primary" style="margin: 0.25rem;">${skill}</span>`).join('')
+            : '<span style="color: var(--text-secondary);">No skills specified</span>';
+
+        // Format date
+        const formattedDate = date.split('T')[0];
+
+        modal.innerHTML = `
+            <div class="modal-overlay" onclick="closeModal()">
+                <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 700px;">
+                    <div class="modal-header">
+                        <h2>💬 Review & Resolve Feedback</h2>
+                        <button onclick="closeModal()" class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- User Info Section -->
+                        <div style="background: var(--bg-card-hover); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: var(--primary);">
+                                <i class="fas fa-user"></i> User Information
+                            </h3>
+                            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 0.75rem;">
+                                <div style="color: var(--text-secondary); font-weight: 600;">Username:</div>
+                                <div><strong>${username}</strong></div>
+                                
+                                <div style="color: var(--text-secondary); font-weight: 600;">Submitted:</div>
+                                <div>${formattedDate}</div>
+                                
+                                <div style="color: var(--text-secondary); font-weight: 600;">Role:</div>
+                                <div>${role || '<span style="color: var(--text-secondary);">Not specified</span>'}</div>
+                                
+                                <div style="color: var(--text-secondary); font-weight: 600;">Skills:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">${skillsList}</div>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Message Section -->
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="margin: 0 0 0.75rem 0; font-size: 1.1rem; color: var(--primary);">
+                                <i class="fas fa-comment-dots"></i> User's Feedback
+                            </h3>
+                            <div style="padding: 1.25rem; background: var(--bg-secondary); border-left: 4px solid var(--primary); border-radius: 8px; line-height: 1.6;">
+                                ${message}
+                            </div>
+                        </div>
+
+                        <!-- Admin Response Section -->
+                        <div style="margin-bottom: 1rem;">
+                            <label for="adminComment" style="display: block; margin-bottom: 0.75rem; font-weight: 600; font-size: 1.1rem; color: var(--primary);">
+                                <i class="fas fa-reply"></i> Your Response
+                            </label>
+                            <textarea 
+                                id="adminComment" 
+                                rows="5" 
+                                style="width: 100%; padding: 1rem; border: 2px solid var(--glass-border); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; line-height: 1.5;"
+                                placeholder="Write your response to the user's feedback here...&#10;&#10;• Acknowledge their concern&#10;• Explain any actions taken&#10;• Provide clarification if needed"
+                            ></textarea>
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                                <i class="fas fa-info-circle"></i> This response will be saved and can be viewed by the user
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button onclick="closeModal()" class="btn btn-outline">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button onclick="resolveFeedbackWithComment('${username}', '${date}')" class="btn btn-primary">
+                            <i class="fas fa-check-circle"></i> Resolve Feedback
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        modal.style.display = 'block';
+    }
+
+    // Resolve feedback with admin comment
+    async function resolveFeedbackWithComment(username, date) {
+        const adminComment = document.getElementById('adminComment').value.trim();
+
+        if (!adminComment) {
+            alert('Please enter an admin response');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/feedback/resolve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: username,
+                    date: date,
+                    admin_comment: adminComment
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Feedback resolved successfully');
+                closeModal();
+                location.reload();
+            } else {
+                alert('❌ ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error resolving feedback');
+        }
+    }
+
+    // Close feedback without action
+    async function closeFeedback(username, date) {
+        if (!confirm('Close this feedback without taking action?')) return;
+
+        try {
+            const response = await fetch('/api/admin/feedback/close', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: username,
+                    date: date
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Feedback closed successfully');
+                location.reload();
+            } else {
+                alert('❌ ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error closing feedback');
+        }
+    }
+
+    // ========================================
+    // SUPPORT TICKET MANAGEMENT
+    // ========================================
+    let allTickets = [];
+    let currentFilter = 'all';
+
+    // Load tickets on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        loadTickets();
+    });
+
+    async function loadTickets(status = null) {
+        try {
+            const url = status ? `/api/admin/tickets?status=${status}` : '/api/admin/tickets';
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data.success) {
+                allTickets = data.tickets;
+                displayTickets(allTickets);
+                displayTicketStats(data.stats);
+            } else {
+                console.error('Failed to load tickets');
+            }
+        } catch (error) {
+            console.error('Error loading tickets:', error);
+        }
+    }
+
+    function displayTickets(tickets) {
+        const tbody = document.getElementById('ticketsTableBody');
+
+        if (tickets.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" style="padding: 3rem; text-align: center; color: var(--text-secondary);">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p style="font-size: 1.1rem;">No tickets found</p>
+                        <p style="font-size: 0.9rem;">No support tickets match the current filter</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = tickets.map(ticket => {
+            const statusBadge = getStatusBadge(ticket.status);
+            const priorityBadge = getPriorityBadge(ticket.priority);
+            const categoryBadge = getCategoryBadge(ticket.category);
+            const createdDate = new Date(ticket.created_at).toLocaleDateString();
+
+            return `
+                <tr style="border-bottom: 1px solid var(--glass-border); transition: var(--transition-fast);"
+                    onmouseover="this.style.background='var(--bg-card-hover)'"
+                    onmouseout="this.style.background='transparent'">
+                    <td style="padding: 1rem;">
+                        <strong style="color: var(--primary);">${ticket.ticket_id}</strong>
+                    </td>
+                    <td style="padding: 1rem;">${ticket.username}</td>
+                    <td style="padding: 1rem; max-width: 250px;">
+                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ticket.subject}">
+                            ${ticket.subject}
+                        </div>
+                    </td>
+                    <td style="padding: 1rem;">${categoryBadge}</td>
+                    <td style="padding: 1rem;">${priorityBadge}</td>
+                    <td style="padding: 1rem;">${statusBadge}</td>
+                    <td style="padding: 1rem;">${createdDate}</td>
+                    <td style="padding: 1rem; text-align: center;">
+                        <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                onclick="viewTicketDetails('${ticket.ticket_id}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            ${ticket.status !== 'closed' && ticket.status !== 'resolved' ? `
+                            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                onclick="updateTicketStatus('${ticket.ticket_id}', 'resolved')">
+                                <i class="fas fa-check"></i> Resolve
+                            </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function displayTicketStats(stats) {
+        const statsContainer = document.getElementById('ticketStats');
+        statsContainer.innerHTML = `
+            <div class="stat-badge" style="background: var(--bg-secondary); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--glass-border);">
+                <strong>${stats.total}</strong> Total
+            </div>
+            <div class="stat-badge" style="background: rgba(239, 68, 68, 0.1); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444;">
+                <strong>${stats.open}</strong> Open
+            </div>
+            <div class="stat-badge" style="background: rgba(251, 191, 36, 0.1); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3); color: #fbbf24;">
+                <strong>${stats.in_progress}</strong> In Progress
+            </div>
+            <div class="stat-badge" style="background: rgba(16, 185, 129, 0.1); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981;">
+                <strong>${stats.resolved}</strong> Resolved
+            </div>
+        `;
+    }
+
+    function filterTickets(status) {
+        currentFilter = status;
+
+        // Update active button
+        document.querySelectorAll('.ticket-filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.closest('button').classList.add('active');
+
+        // Filter tickets
+        if (status === 'all') {
+            displayTickets(allTickets);
+        } else {
+            const filtered = allTickets.filter(t => t.status === status);
+            displayTickets(filtered);
+        }
+    }
+
+    async function viewTicketDetails(ticketId) {
+        try {
+            const response = await fetch(`/api/admin/ticket/${ticketId}`);
+            const data = await response.json();
+
+            if (data.success) {
+                showTicketModal(data.ticket, data.messages);
+            } else {
+                alert('Failed to load ticket details');
+            }
+        } catch (error) {
+            console.error('Error loading ticket details:', error);
+            alert('Error loading ticket details');
+        }
+    }
+
+    function showTicketModal(ticket, messages) {
+        const statusOptions = ['open', 'in_progress', 'resolved', 'closed'];
+        const currentStatus = ticket.status;
+
+        const modalHTML = `
+            <div style="max-height: 600px; overflow-y: auto;">
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h3 style="margin: 0 0 0.5rem 0; color: var(--primary);">${ticket.ticket_id}</h3>
+                            <p style="margin: 0; font-size: 1.1rem; font-weight: 600;">${ticket.subject}</p>
+                        </div>
+                        ${getStatusBadge(ticket.status)}
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <strong style="color: var(--text-secondary); font-size: 0.85rem;">User:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">${ticket.username}</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-secondary); font-size: 0.85rem;">Category:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">${getCategoryBadge(ticket.category)}</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-secondary); font-size: 0.85rem;">Priority:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">${getPriorityBadge(ticket.priority)}</p>
+                        </div>
+                        <div>
+                            <strong style="color: var(--text-secondary); font-size: 0.85rem;">Created:</strong>
+                            <p style="margin: 0.25rem 0 0 0;">${new Date(ticket.created_at).toLocaleString()}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="margin: 0 0 1rem 0;">Conversation History</h4>
+                    <div style="max-height: 300px; overflow-y: auto; background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                        ${messages.map(msg => `
+                            <div style="margin-bottom: 1rem; padding: 0.75rem; background: ${msg.sender === 'bot' || msg.sender === 'admin' ? 'var(--bg-card)' : 'rgba(102, 126, 234, 0.1)'}; border-radius: 8px; border-left: 3px solid ${msg.sender === 'bot' || msg.sender === 'admin' ? 'var(--primary)' : '#667eea'};">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <strong style="color: var(--primary);">${msg.sender === 'bot' ? '🤖 AI Assistant' : msg.sender === 'admin' ? '👨‍💼 Admin' : '👤 ' + ticket.username}</strong>
+                                    <span style="font-size: 0.85rem; color: var(--text-secondary);">${new Date(msg.timestamp).toLocaleString()}</span>
+                                </div>
+                                <p style="margin: 0; line-height: 1.6;">${msg.message}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px;">
+                    <h4 style="margin: 0 0 1rem 0;">Update Ticket</h4>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Status:</label>
+                        <select id="ticketStatus" style="width: 100%; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 8px; background: var(--bg-card); color: var(--text-primary);">
+                            ${statusOptions.map(status => `
+                                <option value="${status}" ${status === currentStatus ? 'selected' : ''}>${status.replace('_', ' ').toUpperCase()}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Admin Notes:</label>
+                        <textarea id="adminNotes" rows="3" placeholder="Add notes about this ticket..." style="width: 100%; padding: 0.75rem; border: 1px solid var(--glass-border); border-radius: 8px; background: var(--bg-card); color: var(--text-primary); resize: vertical;">${ticket.admin_notes || ''}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button onclick="saveTicketUpdate('${ticket.ticket_id}')" class="btn btn-primary" style="flex: 1;">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button onclick="closeModal()" class="btn btn-outline">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        showModal(`Ticket Details - ${ticket.ticket_id}`, modalHTML);
+    }
+
+    async function saveTicketUpdate(ticketId) {
+        const status = document.getElementById('ticketStatus').value;
+        const adminNotes = document.getElementById('adminNotes').value;
+
+        try {
+            const response = await fetch(`/api/admin/ticket/${ticketId}/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: status,
+                    admin_notes: adminNotes
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Ticket updated successfully');
+                closeModal();
+                loadTickets();
+            } else {
+                alert('❌ Failed to update ticket: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error updating ticket:', error);
+            alert('Error updating ticket');
+        }
+    }
+
+    async function updateTicketStatus(ticketId, status) {
+        if (!confirm(`Mark this ticket as ${status}?`)) return;
+
+        try {
+            const response = await fetch(`/api/admin/ticket/${ticketId}/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Ticket updated successfully');
+                loadTickets();
+            } else {
+                alert('❌ Failed to update ticket');
+            }
+        } catch (error) {
+            console.error('Error updating ticket:', error);
+            alert('Error updating ticket');
+        }
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            'open': '<span class="badge badge-danger">🔴 Open</span>',
+            'in_progress': '<span class="badge badge-warning">🟡 In Progress</span>',
+            'resolved': '<span class="badge badge-success">🟢 Resolved</span>',
+            'closed': '<span class="badge" style="background: #6b7280; color: white;">⚫ Closed</span>'
+        };
+        return badges[status] || status;
+    }
+
+    function getPriorityBadge(priority) {
+        const badges = {
+            'low': '<span class="badge" style="background: #10b981; color: white;">Low</span>',
+            'medium': '<span class="badge" style="background: #f59e0b; color: white;">Medium</span>',
+            'high': '<span class="badge" style="background: #ef4444; color: white;">High</span>',
+            'urgent': '<span class="badge" style="background: #dc2626; color: white;">🚨 Urgent</span>'
+        };
+        return badges[priority] || priority;
+    }
+
+    function getCategoryBadge(category) {
+        const badges = {
+            'technical': '<span class="badge" style="background: #667eea; color: white;">🔧 Technical</span>',
+            'account': '<span class="badge" style="background: #764ba2; color: white;">👤 Account</span>',
+            'evaluation': '<span class="badge" style="background: #10b981; color: white;">📝 Evaluation</span>',
+            'general': '<span class="badge" style="background: #6b7280; color: white;">💬 General</span>'
+        };
+        return badges[category] || category;
     }
 </script>
 {% endblock %}

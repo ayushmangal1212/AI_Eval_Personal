@@ -1,0 +1,457 @@
+<!-- 
+    ANIMATED HERO SECTION - Video-like Introduction
+    Add this to your homepage (templates/index.html) to replace or enhance the hero section
+-->
+
+<style>
+    /* Animated Hero Video Section */
+    .hero-video-section {
+        position: relative;
+        min-height: 600px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Animated Background Particles */
+    .hero-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 15s infinite ease-in-out;
+    }
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0) translateX(0);
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 1;
+        }
+
+        90% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(-100vh) translateX(50px);
+            opacity: 0;
+        }
+    }
+
+    /* Video Content Container */
+    .hero-video-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+        max-width: 900px;
+        padding: 2rem;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Animated Logo */
+    .hero-logo {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        animation: scaleIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* Main Title */
+    .hero-video-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        animation: fadeInUp 1s ease-out 0.3s both;
+    }
+
+    /* Subtitle */
+    .hero-video-subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+        animation: fadeInUp 1s ease-out 0.6s both;
+    }
+
+    /* Feature Tags */
+    .hero-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        margin: 2rem 0;
+        animation: fadeInUp 1s ease-out 0.9s both;
+    }
+
+    .feature-tag {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        animation: slideIn 0.5s ease-out backwards;
+    }
+
+    .feature-tag:nth-child(1) {
+        animation-delay: 1.2s;
+    }
+
+    .feature-tag:nth-child(2) {
+        animation-delay: 1.4s;
+    }
+
+    .feature-tag:nth-child(3) {
+        animation-delay: 1.6s;
+    }
+
+    .feature-tag:nth-child(4) {
+        animation-delay: 1.8s;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    /* CTA Button */
+    .hero-cta {
+        display: inline-block;
+        padding: 1.25rem 3rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #667eea;
+        background: white;
+        border-radius: 50px;
+        text-decoration: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        animation: fadeInUp 1s ease-out 2s both, pulse 2s infinite 3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-cta::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(102, 126, 234, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .hero-cta:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .hero-cta:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    /* Stats Counter */
+    .hero-stats {
+        display: flex;
+        gap: 3rem;
+        justify-content: center;
+        margin-top: 3rem;
+        animation: fadeInUp 1s ease-out 2.3s both;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Scroll Indicator */
+    .scroll-indicator {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: bounce 2s infinite 3s;
+        z-index: 2;
+    }
+
+    @keyframes bounce {
+
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        40% {
+            transform: translateX(-50%) translateY(-20px);
+        }
+
+        60% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+    }
+
+    .scroll-indicator i {
+        font-size: 2rem;
+        color: white;
+        opacity: 0.7;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-video-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-video-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .hero-features {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-stats {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .hero-cta {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+    }
+</style>
+
+<!-- Animated Hero Section HTML -->
+<section class="hero-video-section">
+    <!-- Animated Particles Background -->
+    <div class="hero-particles" id="heroParticles"></div>
+
+    <!-- Main Content -->
+    <div class="hero-video-content">
+        <!-- Animated Logo/Icon -->
+        <div class="hero-logo">🤖</div>
+
+        <!-- Main Title -->
+        <h1 class="hero-video-title">
+            AI-Powered Candidate Evaluation
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="hero-video-subtitle">
+            The Future of Technical Interviews is Here
+        </p>
+
+        <!-- Feature Tags -->
+        <div class="hero-features">
+            <div class="feature-tag">✅ AI-Generated Questions</div>
+            <div class="feature-tag">⚡ Real-Time Evaluation</div>
+            <div class="feature-tag">🌍 Multi-Language</div>
+            <div class="feature-tag">🎤 Voice Integration</div>
+        </div>
+
+        <!-- Call to Action -->
+        <a href="{{ url_for('register') }}" class="hero-cta">
+            <i class="fas fa-rocket"></i> Start Free Evaluation
+        </a>
+
+        <!-- Stats Counter -->
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number" data-count="1000">0</span>
+                <span class="stat-label">Candidates Evaluated</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-count="95">0</span>
+                <span class="stat-label">% Accuracy</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-count="5">0</span>
+                <span class="stat-label">Languages Supported</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <i class="fas fa-chevron-down"></i>
+    </div>
+</section>
+
+<script>
+    // Generate floating particles
+    function createParticles() {
+        const container = document.getElementById('heroParticles');
+        const particleCount = 50;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+
+            // Random size
+            const size = Math.random() * 60 + 20;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+
+            // Random position
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+
+            // Random animation delay
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+
+            container.appendChild(particle);
+        }
+    }
+
+    // Animate counter numbers
+    function animateCounters() {
+        const counters = document.querySelectorAll('.stat-number');
+
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-count'));
+            const duration = 2000; // 2 seconds
+            const increment = target / (duration / 16); // 60 FPS
+            let current = 0;
+
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counter.textContent = Math.floor(current);
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counter.textContent = target;
+                }
+            };
+
+            // Start animation after delay
+            setTimeout(updateCounter, 2300);
+        });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        createParticles();
+        animateCounters();
+    });
+
+    // Add ripple effect to CTA button
+    document.querySelector('.hero-cta').addEventListener('click', function (e) {
+        const ripple = document.createElement('span');
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        ripple.classList.add('ripple');
+
+        this.appendChild(ripple);
+
+        setTimeout(() => ripple.remove(), 600);
+    });
+</script>
+
+<!-- 
+    USAGE INSTRUCTIONS:
+    
+    1. Replace the current hero section in templates/index.html with this code
+    2. Make sure Font Awesome is loaded in your base template
+    3. Adjust colors in the CSS to match your brand
+    4. Customize text content as needed
+    5. Update stats numbers to reflect your actual data
+    
+    CUSTOMIZATION:
+    
+    - Change gradient colors in .hero-video-section background
+    - Modify animation timings in @keyframes
+    - Adjust particle count in createParticles() function
+    - Update feature tags text
+    - Change CTA button link and text
+    
+    This creates a video-like animated introduction without needing an actual video file!
+-->

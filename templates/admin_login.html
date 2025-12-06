@@ -3,9 +3,18 @@
 {% block title %}Admin Login - AI Evaluation System{% endblock %}
 
 {% block content %}
+
+<style>
+    @media all and (max-width: 768px) {
+        .admin_login_card {
+            width: 90vw !important;
+        }
+    }
+</style>
+
 <section style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
     <div class="container">
-        <div style="max-width: 500px; margin: 0 auto;">
+        <div class="admin_login_card" style="margin: 0 auto; width: 50vw">
             <div class="card">
                 <div class="card-header text-center">
                     <div style="font-size: 4rem; margin-bottom: 1rem;">👨‍💼</div>

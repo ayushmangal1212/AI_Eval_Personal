@@ -8,6 +8,9 @@
     <meta name="description"
         content="AI-Powered Automated Candidate Evaluation System with real-time assessment and intelligent feedback">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
 </head>
@@ -23,17 +26,26 @@
                 <span class="logo-icon">🤖</span>
                 <span>AI Evaluator</span>
             </div>
-            <ul class="nav-links">
-                {% if session.get('username') %}
-                <li><a href="{{ url_for('dashboard') }}" class="nav-link">📊 Dashboard</a></li>
-                <li><a href="{{ url_for('new_evaluation') }}" class="nav-link">✨ New Evaluation</a></li>
-                <li><a href="{{ url_for('logout') }}" class="nav-link">🚪 Logout</a></li>
-                {% else %}
-                <li><a href="{{ url_for('index') }}" class="nav-link">🏠 Home</a></li>
-                <li><a href="{{ url_for('login') }}" class="nav-link">🔐 Login</a></li>
-                <li><a href="{{ url_for('register') }}" class="nav-link">📝 Register</a></li>
-                {% endif %}
-            </ul>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <ul class="nav-links" {% if admin_view %}style="display: none;" {% endif %}>
+                    {% if session.get('username') %}
+                    <li><a href="{{ url_for('dashboard') }}" class="nav-link">📊 Dashboard</a></li>
+                    <li><a href="{{ url_for('new_evaluation') }}" class="nav-link">✨ New Evaluation</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="nav-link">🚪 Logout</a></li>
+                    {% else %}
+                    <li><a href="{{ url_for('index') }}" class="nav-link">🏠 Home</a></li>
+                    <li><a href="{{ url_for('login') }}" class="nav-link">🔐 Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-link">📝 Register</a></li>
+                    <li><a href="{{ url_for('admin_login') }}" class="nav-link">🔐 Admin</a></li>
+                    {% endif %}
+                </ul>
+                <!-- Theme Toggle Button -->
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Switch theme">
+                    <div class="theme-toggle-slider">
+                        <span class="theme-toggle-icon">🌙</span>
+                    </div>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -42,12 +54,65 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer style="text-align: center; padding: 2rem; margin-top: 4rem; border-top: 1px solid rgba(255,255,255,0.1);">
-        <p style="color: var(--text-secondary);">
-            Made with <span style="color: #f5576c;">❤️</span> By Team Westeros
-        </p>
-    </footer>
+    <!-- Support Chat UI (only for logged-in users) -->
+    {% if session.get('username') %}
+    <!-- Floating Chat Button -->
+    <div id="chatButton" class="chat-button" onclick="toggleChat()" title="Support Chat">
+        <i class="fas fa-comments"></i>
+        <span class="chat-badge" id="chatBadge" style="display: none;">1</span>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="chatWindow" class="chat-window" style="display: none;">
+        <div class="chat-header"
+            onclick="event.target.closest('.chat-window').classList.contains('minimized') && minimizeChat()">
+            <div>
+                <h3 style="margin: 0; font-size: 1.1rem;">💬 Support Chat</h3>
+                <p style="margin: 0; font-size: 0.75rem; opacity: 0.9;">AI-Powered Assistant</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="event.stopPropagation(); minimizeChat()" class="chat-close-btn" title="Minimize chat">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button onclick="event.stopPropagation(); toggleChat()" class="chat-close-btn" title="Close chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <!-- Welcome message -->
+            <div class="chat-message bot">
+                <div class="message-content">
+                    <strong>AI Assistant</strong>
+                    <p>Hi {{ session.get('username') }}! 👋 I'm your AI support assistant.</p>
+                    <p>How can I help you today?</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem;">I can assist with:</p>
+                    <ul style="font-size: 0.85rem; margin: 0.5rem 0; padding-left: 1.5rem;">
+                        <li>Taking evaluations</li>
+                        <li>Understanding scores</li>
+                        <li>Account questions</li>
+                        <li>Technical issues</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-actions" id="chatActions" style="display: none;">
+            <button onclick="createTicket()" class="btn-create-ticket">
+                <i class="fas fa-ticket-alt"></i> Create Support Ticket
+            </button>
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Type your message..."
+                onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" class="chat-send-btn" title="Send message">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Scripts -->
     <script>
@@ -68,6 +133,37 @@
 
         createParticles();
 
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.querySelector('.theme-toggle-icon');
+        const html = document.documentElement;
+
+        // Load saved theme or default to dark
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        // Update icon based on theme
+        function updateThemeIcon(theme) {
+            if (theme === 'light') {
+                themeIcon.textContent = '☀️';
+                themeToggle.setAttribute('title', 'Switch to dark mode');
+            } else {
+                themeIcon.textContent = '🌙';
+                themeToggle.setAttribute('title', 'Switch to light mode');
+            }
+        }
+
         // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -78,6 +174,164 @@
                 }
             });
         });
+
+        // ========================================
+        // SUPPORT CHAT FUNCTIONALITY
+        // ========================================
+        {% if session.get('username') %}
+        let chatHistory = [];
+        let chatOpen = false;
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const chatButton = document.getElementById('chatButton');
+            chatOpen = !chatOpen;
+
+            if (chatOpen) {
+                chatWindow.style.display = 'flex';
+                chatButton.style.display = 'none';
+                document.getElementById('chatInput').focus();
+            } else {
+                chatWindow.style.display = 'none';
+                chatButton.style.display = 'flex';
+            }
+        }
+
+        function minimizeChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.classList.toggle('minimized');
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat('user', message);
+            chatHistory.push({ role: 'user', content: message });
+
+            // Clear input
+            input.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                // Send to backend
+                const response = await fetch('/api/chat/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        history: chatHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                // Remove typing indicator
+                removeTypingIndicator();
+
+                if (data.success) {
+                    // Add bot response
+                    addMessageToChat('bot', data.response);
+                    chatHistory.push({ role: 'assistant', content: data.response });
+
+                    // Show ticket creation option after a few messages
+                    if (chatHistory.length >= 4) {
+                        document.getElementById('chatActions').style.display = 'block';
+                    }
+                } else {
+                    addMessageToChat('bot', 'Sorry, I encountered an error. Please try again.');
+                }
+            } catch (error) {
+                removeTypingIndicator();
+                addMessageToChat('bot', 'Sorry, I\'m having trouble connecting. Please try again.');
+                console.error('Chat error:', error);
+            }
+        }
+
+        function addMessageToChat(role, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+
+            if (role === 'bot') {
+                contentDiv.innerHTML = `<strong>AI Assistant</strong><p>${content}</p>`;
+            } else {
+                contentDiv.innerHTML = `<p>${content}</p>`;
+            }
+
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message bot typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-content">
+                    <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        async function createTicket() {
+            if (chatHistory.length < 2) {
+                alert('Please have a conversation first before creating a ticket.');
+                return;
+            }
+
+            if (!confirm('Create a support ticket from this conversation? An admin will review it.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/chat/create-ticket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        history: chatHistory,
+                        category: 'general',
+                        priority: 'medium'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    addMessageToChat('bot', `✅ Support ticket ${data.ticket_id} has been created! An admin will review your case and respond soon. You can track your ticket status in your dashboard.`);
+                    document.getElementById('chatActions').style.display = 'none';
+                } else {
+                    alert('Failed to create ticket: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error creating ticket. Please try again.');
+                console.error('Ticket creation error:', error);
+            }
+        }
+        {% endif %}
     </script>
     {% block extra_js %}{% endblock %}
 </body>
