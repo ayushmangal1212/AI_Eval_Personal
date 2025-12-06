@@ -1,0 +1,679 @@
+{% extends "base.html" %}
+
+{% block title %}New Evaluation - AI Evaluation System{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0; min-height: 80vh;">
+    <div class="container">
+        <!-- Setup Form -->
+        <div id="setupSection" class="card" style="max-width: 700px; margin: 0 auto;">
+            <div class="card-header text-center">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+                <h1 class="card-title" style="font-size: 2rem;">Start New Evaluation</h1>
+                <p class="card-subtitle">Configure your technical assessment</p>
+            </div>
+
+            <form id="setupForm">
+                <div class="form-group">
+                    <label class="form-label" for="role">
+                        <i class="fas fa-briefcase"></i> Select Role
+                    </label>
+                    <select id="role" name="role" class="form-select" required>
+                        <option value="">Choose a role...</option>
+                        {% for role in roles %}
+                        <option value="{{ role }}">{{ role }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="skills">
+                        <i class="fas fa-code"></i> Technical Skills
+                    </label>
+                    <input type="text" id="skills" name="skills" class="form-input"
+                        placeholder="e.g., Python, Flask, REST APIs, Docker" required>
+                    <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.25rem;">
+                        Enter skills separated by commas
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="language">
+                        <i class="fas fa-language"></i> Preferred Language
+                    </label>
+                    <select id="language" name="language" class="form-select" required>
+                        <option value="English">English 🇬🇧</option>
+                        <option value="Hindi">Hindi 🇮🇳</option>
+                        <option value="Spanish">Spanish 🇪🇸</option>
+                        <option value="German">German 🇩🇪</option>
+                        <option value="French">French 🇫🇷</option>
+                    </select>
+                </div>
+
+                <div
+                    style="background: rgba(102, 126, 234, 0.1); border: 1px solid var(--primary); border-radius: var(--radius-md); padding: 1rem; margin: 1.5rem 0;">
+                    <h4
+                        style="color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Assessment Details
+                    </h4>
+                    <ul style="color: var(--text-secondary); margin-left: 1.5rem; line-height: 1.8;">
+                        <li>5 questions total (3 conceptual + 2 coding)</li>
+                        <li>10 minutes per question</li>
+                        <li>50 minutes total duration</li>
+                        <li>Real-time AI evaluation</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-play"></i> Start Evaluation
+                    <span class="spinner" id="setupSpinner"
+                        style="display: none; width: 20px; height: 20px; margin-left: 10px;"></span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Evaluation Section (Hidden Initially) -->
+        <div id="evaluationSection" style="display: none;">
+            <!-- Timer Header -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 class="card-title" style="margin-bottom: 0.5rem;">
+                            Question <span id="currentQuestion">1</span> of 5
+                        </h2>
+                        <p style="color: var(--text-secondary);">
+                            <span id="questionType"></span>
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div class="timer">
+                            <span class="timer-icon">⏱️</span>
+                            <span id="questionTimer">10:00</span>
+                        </div>
+                        <div class="timer" style="background: rgba(240, 147, 251, 0.1); border-color: var(--accent);">
+                            <span class="timer-icon">⏰</span>
+                            <span id="totalTimer">50:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar" style="margin-top: 1rem;">
+                    <div class="progress-fill" id="progressBar" style="width: 20%;"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h3 class="card-title" id="questionTitle">Question</h3>
+                </div>
+                <div id="questionContent" style="color: var(--text-secondary); line-height: 1.8; font-size: 1.1rem;">
+                    <!-- Question will be loaded here -->
+                </div>
+
+                <!-- TTS Button -->
+                <button id="ttsButton" class="btn btn-secondary" style="margin-top: 1rem;">
+                    <i class="fas fa-volume-up"></i> Listen to Question
+                </button>
+            </div>
+
+            <!-- Answer Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Your Answer</h3>
+                </div>
+
+                <div class="form-group">
+                    <textarea id="answerInput" class="form-textarea"
+                        placeholder="Type your answer here... For coding questions, write your complete solution."
+                        rows="10" style="font-family: 'Courier New', monospace;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button id="submitAnswer" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Submit Answer
+                    </button>
+                    <button id="skipQuestion" class="btn btn-outline">
+                        <i class="fas fa-forward"></i> Skip Question
+                    </button>
+                    <button id="voiceInput" class="btn btn-secondary">
+                        <i class="fas fa-microphone"></i> Voice Input
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section (Hidden Initially) -->
+        <div id="resultsSection" style="display: none;">
+            <div class="card text-center" style="max-width: 800px; margin: 0 auto;">
+                <div style="font-size: 5rem; margin-bottom: 1rem;" id="resultEmoji">🎉</div>
+                <h1 class="card-title" style="font-size: 2.5rem; margin-bottom: 1rem;">
+                    Evaluation Complete!
+                </h1>
+
+                <div class="grid grid-3" style="margin: 2rem 0;">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value" id="finalScore">0</div>
+                        <div class="stat-label">Total Score</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" id="finalPercentage">0%</div>
+                        <div class="stat-label">Percentage</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-value" id="finalTime">0:00</div>
+                        <div class="stat-label">Time Taken</div>
+                    </div>
+                </div>
+
+                <div id="recommendation"
+                    style="background: var(--glass-bg); border-radius: var(--radius-md); padding: 1.5rem; margin: 2rem 0;">
+                    <!-- Recommendation will be loaded here -->
+                </div>
+
+                <!-- Detailed Question Results -->
+                <div id="questionResults" style="margin: 3rem 0; text-align: left;">
+                    <h2 class="card-title" style="text-align: center; margin-bottom: 2rem;">
+                        📝 Detailed Results & Feedback
+                    </h2>
+                    <div id="questionResultsList">
+                        <!-- Question results will be loaded here -->
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('new_evaluation') }}" class="btn btn-outline">
+                        <i class="fas fa-redo"></i> New Evaluation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let answers = [];
+    let startTime = Date.now();
+    let questionStartTime = Date.now();
+    let questionTimerInterval;
+    let totalTimerInterval;
+    let evaluationConfig = {};
+
+    // Store user skills from profile
+    const userSkills = {{ user_skills| tojson | safe }} || [];
+
+    // Role-specific skill keywords for filtering
+    const roleSkillKeywords = {
+        'Java Developer': ['java', 'spring', 'hibernate', 'maven', 'junit', 'jpa', 'jdbc', 'servlet'],
+        'Python Developer': ['python', 'django', 'flask', 'fastapi', 'pandas', 'numpy', 'pytest'],
+        'Frontend Developer': ['javascript', 'react', 'angular', 'vue', 'html', 'css', 'typescript', 'webpack', 'sass'],
+        'DevOps Engineer': ['docker', 'kubernetes', 'jenkins', 'aws', 'azure', 'terraform', 'ansible', 'ci/cd', 'linux'],
+        'Data Engineer': ['spark', 'hadoop', 'kafka', 'airflow', 'etl', 'python', 'scala', 'hive'],
+        'Database Administrator': ['sql', 'mysql', 'postgresql', 'oracle', 'mongodb', 'redis', 'database', 'nosql']
+    };
+
+    // Common database skills to always include if available
+    const dbSkills = ['sql', 'mysql', 'postgresql', 'mongodb', 'redis', 'oracle', 'database'];
+
+    // Auto-fill skills when role is selected
+    document.addEventListener('DOMContentLoaded', () => {
+        const roleSelect = document.getElementById('role');
+        const skillsInput = document.getElementById('skills');
+
+        if (roleSelect && skillsInput) {
+            roleSelect.addEventListener('change', (e) => {
+                const selectedRole = e.target.value;
+                if (!selectedRole || userSkills.length === 0) return;
+
+                // Get role-specific keywords
+                const keywords = roleSkillKeywords[selectedRole] || [];
+
+                // Filter user skills that match the role
+                const relevantSkills = userSkills.filter(skill => {
+                    const skillLower = skill.toLowerCase();
+                    return keywords.some(keyword => skillLower.includes(keyword));
+                });
+
+                // Find database skills from user's skills
+                const userDbSkills = userSkills.filter(skill => {
+                    const skillLower = skill.toLowerCase();
+                    return dbSkills.some(db => skillLower.includes(db));
+                });
+
+                // Combine: prioritize role-specific skills, then add DB skill if available
+                let finalSkills = [...relevantSkills];
+
+                // Add one DB skill if not already included
+                if (userDbSkills.length > 0 && !finalSkills.some(s => {
+                    const sLower = s.toLowerCase();
+                    return dbSkills.some(db => sLower.includes(db));
+                })) {
+                    finalSkills.push(userDbSkills[0]);
+                }
+
+                // Limit to 5 skills
+                finalSkills = finalSkills.slice(0, 5);
+
+                // If we have fewer than 5, add more general skills
+                if (finalSkills.length < 5) {
+                    const remainingSkills = userSkills.filter(s => !finalSkills.includes(s));
+                    finalSkills = [...finalSkills, ...remainingSkills].slice(0, 5);
+                }
+
+                // Auto-fill the skills field
+                if (finalSkills.length > 0) {
+                    skillsInput.value = finalSkills.join(', ');
+                    // Highlight the field
+                    skillsInput.style.borderColor = 'var(--success)';
+                    skillsInput.style.boxShadow = '0 0 0 3px rgba(79, 172, 254, 0.2)';
+                    setTimeout(() => {
+                        skillsInput.style.borderColor = '';
+                        skillsInput.style.boxShadow = '';
+                    }, 3000);
+                }
+            });
+        }
+    });
+
+    // Setup Form Handler
+    document.getElementById('setupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const role = document.getElementById('role').value;
+        const skills = document.getElementById('skills').value.split(',').map(s => s.trim());
+        const language = document.getElementById('language').value;
+
+        evaluationConfig = { role, skills, language };
+
+        document.getElementById('setupSpinner').style.display = 'inline-block';
+
+        try {
+            const response = await fetch('/api/generate-questions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(evaluationConfig)
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Response is not JSON! Content-Type:', contentType);
+                const text = await response.text();
+                console.error('Response text:', text.substring(0, 200));
+                alert('Error: Server returned HTML instead of JSON. You may not be logged in. Please refresh and try again.');
+                document.getElementById('setupSpinner').style.display = 'none';
+                return;
+            }
+
+            const data = await response.json();
+            console.log('Response data:', data);
+
+            if (data.success) {
+                questions = data.questions;
+                startEvaluation();
+            } else {
+                alert('Failed to generate questions: ' + (data.message || 'Unknown error'));
+                console.error('API returned error:', data);
+            }
+        } catch (error) {
+            console.error('Error details:', error);
+            alert('An error occurred: ' + error.message + '\n\nCheck browser console (F12) for details.');
+        }
+
+        document.getElementById('setupSpinner').style.display = 'none';
+    });
+
+    function startEvaluation() {
+        document.getElementById('setupSection').style.display = 'none';
+        document.getElementById('evaluationSection').style.display = 'block';
+
+        startTime = Date.now();
+        loadQuestion(0);
+        startTimers();
+    }
+
+    function loadQuestion(index) {
+        if (index >= questions.length) {
+            finishEvaluation();
+            return;
+        }
+
+        currentQuestionIndex = index;
+        const question = questions[index];
+
+        document.getElementById('currentQuestion').textContent = index + 1;
+        document.getElementById('questionType').textContent = question.type === 'coding' ? '💻 Coding Challenge' : '💭 Conceptual Question';
+        document.getElementById('questionContent').textContent = question.question;
+        document.getElementById('answerInput').value = '';
+        document.getElementById('progressBar').style.width = ((index + 1) / questions.length * 100) + '%';
+
+        questionStartTime = Date.now();
+    }
+
+    function startTimers() {
+        let questionSeconds = 600; // 10 minutes
+        let totalSeconds = 3000; // 50 minutes
+
+        questionTimerInterval = setInterval(() => {
+            questionSeconds--;
+            if (questionSeconds <= 0) {
+                submitCurrentAnswer();
+            }
+            document.getElementById('questionTimer').textContent = formatTime(questionSeconds);
+        }, 1000);
+
+        totalTimerInterval = setInterval(() => {
+            totalSeconds--;
+            if (totalSeconds <= 0) {
+                finishEvaluation();
+            }
+            document.getElementById('totalTimer').textContent = formatTime(totalSeconds);
+        }, 1000);
+    }
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    document.getElementById('submitAnswer').addEventListener('click', submitCurrentAnswer);
+    document.getElementById('skipQuestion').addEventListener('click', () => {
+        answers.push({ question: questions[currentQuestionIndex].question, answer: '', score: 0, feedback: 'Skipped' });
+        loadQuestion(currentQuestionIndex + 1);
+    });
+
+    async function submitCurrentAnswer() {
+        const answer = document.getElementById('answerInput').value;
+        const question = questions[currentQuestionIndex];
+
+        // Evaluate answer
+        try {
+            const response = await fetch('/api/evaluate-answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: question.question,
+                    answer: answer,
+                    type: question.type
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                answers.push({
+                    question: question.question,
+                    answer: answer,
+                    score: data.result.score,
+                    feedback: data.result.feedback
+                });
+            }
+        } catch (error) {
+            console.error('Error evaluating answer:', error);
+        }
+
+        loadQuestion(currentQuestionIndex + 1);
+    }
+
+    async function finishEvaluation() {
+        clearInterval(questionTimerInterval);
+        clearInterval(totalTimerInterval);
+
+        const totalScore = answers.reduce((sum, a) => sum + a.score, 0);
+        const maxScore = questions.length * 20;
+        const percentage = (totalScore / maxScore) * 100;
+        const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+        // Save evaluation
+        await fetch('/api/save-evaluation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                role: evaluationConfig.role,
+                score: totalScore,
+                max_score: maxScore,
+                percentage: percentage,
+                time_taken: formatTime(timeTaken),
+                qa_history: answers
+            })
+        });
+
+        // Show results
+        document.getElementById('evaluationSection').style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'block';
+
+        document.getElementById('finalScore').textContent = `${totalScore}/${maxScore}`;
+        document.getElementById('finalPercentage').textContent = percentage.toFixed(1) + '%';
+        document.getElementById('finalTime').textContent = formatTime(timeTaken);
+
+        const emoji = percentage >= 80 ? '🎉' : percentage >= 60 ? '👍' : '📚';
+        document.getElementById('resultEmoji').textContent = emoji;
+
+        const recommendation = percentage >= 80 ?
+            '<h3 style="color: var(--success);">✅ Excellent Performance!</h3><p>Strong candidate with solid technical skills. Highly recommended for the role.</p>' :
+            percentage >= 60 ?
+                '<h3 style="color: var(--warning);">👍 Good Performance</h3><p>Recommended with some upskilling in specific areas. Shows potential.</p>' :
+                '<h3 style="color: var(--danger);">📚 Needs Improvement</h3><p>Consider additional training and practice before reapplying.</p>';
+
+        document.getElementById('recommendation').innerHTML = recommendation;
+    }
+
+    // TTS Button
+    document.getElementById('ttsButton').addEventListener('click', () => {
+        const text = document.getElementById('questionContent').textContent;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        speechSynthesis.speak(utterance);
+    });
+
+    // Voice Input with Speech Recognition
+    let recognition = null;
+    let isRecording = false;
+
+    // Check if browser supports speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        let finalTranscript = '';
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            // Update textarea with transcription
+            const answerInput = document.getElementById('answerInput');
+            const currentText = answerInput.value;
+
+            // If there's existing text, add a space before appending
+            if (currentText && !currentText.endsWith(' ') && !currentText.endsWith('\n')) {
+                answerInput.value = currentText + ' ' + finalTranscript + interimTranscript;
+            } else {
+                answerInput.value = currentText + finalTranscript + interimTranscript;
+            }
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            isRecording = false;
+            const voiceBtn = document.getElementById('voiceInput');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice Input';
+            voiceBtn.style.background = '';
+
+            if (event.error === 'not-allowed') {
+                alert('Microphone access denied. Please allow microphone access in your browser settings.');
+            } else {
+                alert('Speech recognition error: ' + event.error);
+            }
+        };
+
+        recognition.onend = () => {
+            if (isRecording) {
+                // Restart if still recording (for continuous mode)
+                recognition.start();
+            }
+        };
+    }
+
+    document.getElementById('voiceInput').addEventListener('click', () => {
+        if (!recognition) {
+            alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+            return;
+        }
+
+        const voiceBtn = document.getElementById('voiceInput');
+        const answerInput = document.getElementById('answerInput');
+
+        if (!isRecording) {
+            // Start recording
+            try {
+                recognition.start();
+                isRecording = true;
+                voiceBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                voiceBtn.style.background = 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)';
+
+                // Visual feedback
+                answerInput.style.borderColor = 'var(--danger)';
+                answerInput.style.boxShadow = '0 0 0 3px rgba(245, 87, 108, 0.2)';
+                answerInput.placeholder = 'Listening... Speak now!';
+            } catch (error) {
+                console.error('Error starting recognition:', error);
+                alert('Failed to start voice recognition. Please try again.');
+            }
+        } else {
+            // Stop recording
+            recognition.stop();
+            isRecording = false;
+            voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Voice Input';
+            voiceBtn.style.background = '';
+
+            // Remove visual feedback
+            answerInput.style.borderColor = '';
+            answerInput.style.boxShadow = '';
+            answerInput.placeholder = 'Type your answer here... For coding questions, write your complete solution.';
+        }
+    });
+
+    // ============================================
+    // RESUME PARSING FUNCTIONALITY
+    // ============================================
+
+    document.getElementById('resumeUpload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Show loading status
+        document.getElementById('resumeStatus').style.display = 'block';
+        document.getElementById('resumeResult').style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('resume', file);
+
+        try {
+            const response = await fetch('/api/parse-resume', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            // Hide loading
+            document.getElementById('resumeStatus').style.display = 'none';
+
+            if (result.success) {
+                const data = result.data;
+
+                // Auto-fill form fields
+                if (data.suggested_role) {
+                    document.getElementById('role').value = data.suggested_role;
+                }
+
+                if (data.skills && data.skills.length > 0) {
+                    document.getElementById('skills').value = data.skills.join(', ');
+                }
+
+                // Show success message with extracted data
+                const resultHTML = `
+                    <div class="alert alert-success" style="text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span style="font-size: 1.5rem;">✅</span>
+                            <strong>Resume Parsed Successfully!</strong>
+                        </div>
+                        <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                            <p><strong>Name:</strong> ${data.name || 'Not found'}</p>
+                            <p><strong>Email:</strong> ${data.email || 'Not found'}</p>
+                            <p><strong>Experience:</strong> ${data.experience_years || 0} years</p>
+                            <p><strong>Suggested Role:</strong> ${data.suggested_role || 'Not determined'}</p>
+                            <p><strong>Skills Found:</strong> ${data.skills.length} skills</p>
+                            ${data.skills.length > 0 ? `<p style="font-size: 0.8rem; color: var(--text-muted);">${data.skills.slice(0, 10).join(', ')}${data.skills.length > 10 ? '...' : ''}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('resumeResult').innerHTML = resultHTML;
+                document.getElementById('resumeResult').style.display = 'block';
+
+                // Scroll to form
+                document.getElementById('role').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Highlight auto-filled fields
+                document.getElementById('role').style.borderColor = 'var(--success)';
+                document.getElementById('skills').style.borderColor = 'var(--success)';
+
+                setTimeout(() => {
+                    document.getElementById('role').style.borderColor = '';
+                    document.getElementById('skills').style.borderColor = '';
+                }, 3000);
+
+            } else {
+                // Show error
+                document.getElementById('resumeResult').innerHTML = `
+                    <div class="alert alert-error">
+                        <span style="font-size: 1.5rem;">❌</span>
+                        <span>Failed to parse resume: ${result.message}</span>
+                    </div>
+                `;
+                document.getElementById('resumeResult').style.display = 'block';
+            }
+
+        } catch (error) {
+            document.getElementById('resumeStatus').style.display = 'none';
+            document.getElementById('resumeResult').innerHTML = `
+                <div class="alert alert-error">
+                    <span style="font-size: 1.5rem;">❌</span>
+                    <span>Error uploading resume. Please try again.</span>
+                </div>
+            `;
+            document.getElementById('resumeResult').style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

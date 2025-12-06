@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rahul Sharma - Resume</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .resume {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header h2 {
+            font-size: 1.3em;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.9em;
+        }
+
+        .contact-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            text-align: justify;
+            color: #555;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .skill-category h4 {
+            color: #764ba2;
+            margin-bottom: 8px;
+        }
+
+        .skill-category ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .skill-category li:before {
+            content: "▸ ";
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .experience-item,
+        .education-item,
+        .project-item {
+            margin-bottom: 25px;
+        }
+
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .job-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .company {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .duration {
+            color: #888;
+            font-style: italic;
+        }
+
+        .responsibilities {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .responsibilities li {
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .responsibilities li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .certifications-list,
+        .achievements-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .certifications-list li,
+        .achievements-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .certifications-list li:before {
+            content: "🏆";
+            position: absolute;
+            left: 0;
+        }
+
+        .achievements-list li:before {
+            content: "⭐";
+            position: absolute;
+            left: 0;
+        }
+
+        .project-name {
+            font-weight: bold;
+            color: #764ba2;
+            font-size: 1.1em;
+        }
+
+        .project-tech {
+            color: #888;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .resume {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="resume">
+        <!-- Header -->
+        <div class="header">
+            <h1>RAHUL SHARMA</h1>
+            <h2>Senior Python Developer</h2>
+            <div class="contact-info">
+                <span>📧 rahul.sharma@email.com</span>
+                <span>📱 +91-9876543210</span>
+                <span>📍 Bangalore, India</span>
+                <span>💼 linkedin.com/in/rahulsharma</span>
+                <span>💻 github.com/rahulsharma</span>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Professional Summary -->
+            <div class="section">
+                <h3 class="section-title">Professional Summary</h3>
+                <p class="summary">
+                    Highly skilled Python Developer with 5+ years of experience in designing and developing scalable web
+                    applications,
+                    RESTful APIs, and microservices. Expertise in Django, Flask, FastAPI, and cloud technologies. Proven
+                    track record
+                    of delivering high-quality solutions in agile environments. Strong problem-solving abilities and
+                    passion for
+                    writing clean, maintainable code.
+                </p>
+            </div>
+
+            <!-- Technical Skills -->
+            <div class="section">
+                <h3 class="section-title">Technical Skills</h3>
+                <div class="skills-grid">
+                    <div class="skill-category">
+                        <h4>Programming Languages</h4>
+                        <ul>
+                            <li>Python</li>
+                            <li>JavaScript</li>
+                            <li>SQL</li>
+                            <li>Bash</li>
+                        </ul>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Web Frameworks</h4>
+                        <ul>
+                            <li>Django</li>
+                            <li>Flask</li>
+                            <li>FastAPI</li>
+                            <li>Django REST Framework</li>
+                        </ul>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Databases</h4>
+                        <ul>
+                            <li>PostgreSQL</li>
+                            <li>MySQL</li>
+                            <li>MongoDB</li>
+                            <li>Redis</li>
+                        </ul>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Cloud & DevOps</h4>
+                        <ul>
+                            <li>AWS (EC2, S3, Lambda)</li>
+                            <li>Docker</li>
+                            <li>Kubernetes</li>
+                            <li>Jenkins, CI/CD</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Experience -->
+            <div class="section">
+                <h3 class="section-title">Professional Experience</h3>
+
+                <div class="experience-item">
+                    <div class="experience-header">
+                        <div>
+                            <div class="job-title">Senior Python Developer</div>
+                            <div class="company">Tech Solutions Pvt Ltd, Bangalore</div>
+                        </div>
+                        <div class="duration">June 2021 - Present</div>
+                    </div>
+                    <ul class="responsibilities">
+                        <li>Developed and maintained 15+ RESTful APIs using Django REST Framework serving 100K+ daily
+                            requests</li>
+                        <li>Implemented microservices architecture using Docker and Kubernetes, improving system
+                            scalability by 40%</li>
+                        <li>Led a team of 4 developers in building an e-commerce platform handling 50K+ transactions
+                            daily</li>
+                        <li>Optimized database queries reducing response time by 60%</li>
+                        <li>Integrated payment gateways (Razorpay, Stripe) and third-party APIs</li>
+                        <li>Implemented CI/CD pipelines using Jenkins and GitLab CI</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="experience-header">
+                        <div>
+                            <div class="job-title">Python Developer</div>
+                            <div class="company">Digital Innovations Inc, Pune</div>
+                        </div>
+                        <div class="duration">January 2019 - May 2021</div>
+                    </div>
+                    <ul class="responsibilities">
+                        <li>Built web applications using Django and Flask frameworks</li>
+                        <li>Developed RESTful APIs for mobile and web applications</li>
+                        <li>Implemented user authentication and authorization using JWT</li>
+                        <li>Created automated test suites achieving 85% code coverage</li>
+                        <li>Deployed applications on AWS EC2 and managed RDS databases</li>
+                    </ul>
+                </div>
+
+                <div class="experience-item">
+                    <div class="experience-header">
+                        <div>
+                            <div class="job-title">Junior Python Developer</div>
+                            <div class="company">StartUp Tech, Bangalore</div>
+                        </div>
+                        <div class="duration">July 2017 - December 2018</div>
+                    </div>
+                    <ul class="responsibilities">
+                        <li>Developed Python scripts for data processing and automation</li>
+                        <li>Built web scrapers using BeautifulSoup and Scrapy</li>
+                        <li>Created data visualization dashboards using Plotly and Dash</li>
+                        <li>Worked on Django-based CRM system</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="section">
+                <h3 class="section-title">Education</h3>
+                <div class="education-item">
+                    <div class="experience-header">
+                        <div>
+                            <div class="job-title">Bachelor of Technology in Computer Science</div>
+                            <div class="company">VTU University, Bangalore</div>
+                        </div>
+                        <div class="duration">2013 - 2017</div>
+                    </div>
+                    <p style="color: #555;">CGPA: 8.5/10</p>
+                </div>
+            </div>
+
+            <!-- Certifications -->
+            <div class="section">
+                <h3 class="section-title">Certifications</h3>
+                <ul class="certifications-list">
+                    <li>AWS Certified Developer - Associate (2022)</li>
+                    <li>Python for Data Science - Coursera (2021)</li>
+                    <li>Docker Certified Associate (2020)</li>
+                    <li>Certified Scrum Master (CSM) (2019)</li>
+                </ul>
+            </div>
+
+            <!-- Key Projects -->
+            <div class="section">
+                <h3 class="section-title">Key Projects</h3>
+
+                <div class="project-item">
+                    <div class="project-name">E-Commerce Platform</div>
+                    <p class="project-tech">Technologies: Django, PostgreSQL, Redis, AWS, Docker</p>
+                    <ul class="responsibilities">
+                        <li>Built scalable e-commerce platform handling 50K+ daily users</li>
+                        <li>Implemented payment integration, inventory management, and order tracking</li>
+                        <li>Achieved 99.9% uptime with automated monitoring and alerts</li>
+                    </ul>
+                </div>
+
+                <div class="project-item">
+                    <div class="project-name">Task Management API</div>
+                    <p class="project-tech">Technologies: FastAPI, MongoDB, Redis, Docker</p>
+                    <ul class="responsibilities">
+                        <li>Developed RESTful API for task management system</li>
+                        <li>Implemented real-time notifications using WebSockets</li>
+                        <li>Achieved response time < 100ms for 95% of requests</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="section">
+                <h3 class="section-title">Achievements</h3>
+                <ul class="achievements-list">
+                    <li>Employee of the Year 2022 at Tech Solutions Pvt Ltd</li>
+                    <li>Reduced application deployment time by 70% through automation</li>
+                    <li>Improved API performance by 60% through optimization</li>
+                    <li>Successfully delivered 10+ projects on time and within budget</li>
+                    <li>Mentored 8+ junior developers</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

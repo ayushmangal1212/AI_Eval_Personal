@@ -1,0 +1,183 @@
+Thanks — I added a TODO plan and marked the initial audit as in-progress. Below are prioritized, actionable enhancement suggestions for your AI interview evaluation agent. For each suggestion I give the why, what to change (file references or code guidance), risk/effort estimate, and quick next steps.
+
+High Priority (stability, security, correctness)
+
+PII Protection:
+
+Why: Resumes contain emails, phone numbers, and other sensitive data. You already mask before LLM calls; extend this across storage and logs.
+What:
+Mask or remove PII before writing to DB (store hashed or redacted email/phone), or encrypt sensitive DB columns.
+Avoid printing raw st.session_state or parsed content to logs.
+Files: update eval.py upload flow, db_utils.py save functions.
+Effort: small–medium (1–2 days).
+Risk: medium — must ensure login/notifications that depend on email still work (store masked + original secured if needed).
+Secrets & API Key Handling:
+
+Why: DEEPSEEK_API_KEY currently read from env but also shown as warning in UI. Avoid leaking keys and require explicit opt-in for LLM use.
+What: centralize LLM config in llm_utils.py and only initialize LLM client when key exists. Add runtime check and clear message if missing. Move all references from multiple files to that module.
+Effort: small (half-day).
+Risk: low.
+Input Validation & Hardening:
+
+Why: Several places assume user inputs exist (e.g., reading uploaded files, JSON parsing).
+What: add strict validation and defensive code: check file size, type, catch parse exceptions, validate JSON from LLM before using. Add tests for invalid inputs.
+Files: eval.py, resume_utils.py, llm_utils.py.
+Effort: small–medium (1 day).
+Risk: low.
+Architecture & Code Quality
+
+Modularize code (split eval.py):
+
+Why: eval.py is large and hard to scan. Splitting improves readability and testability.
+What: create modules:
+frontend.py — UI entrypoints (tabs, forms, page layout).
+backend.py — wrapper for DB/data access (move db_utils usages here).
+resume_utils.py — parse_resume, mask_pii, resume text extraction helpers.
+llm_utils.py — LLM client initialization and llm_parse_resume.
+utils.py — generic helpers (rerun wrapper, timer HTML, etc.).
+Keep eval.py as a small orchestrator or replace it with app.py that imports frontend.home_page().
+Files: new modules; update existing imports in eval_new.py, eval3pm.py.
+Effort: medium (1–2 days).
+Risk: low if you keep exact interfaces and add smoke tests.
+Type hints & docstrings:
+
+Why: improves editor navigation and reduces bugs.
+What: add return types and docstrings to public functions. Add mypy checks to CI.
+Effort: small (1 day).
+Resume parsing & LLM usage
+
+Robust LLM parsing with schema validation:
+
+Why: LLM outputs can be inconsistent; you already try to extract JSON. Strengthen it.
+What:
+Use a strict JSON schema (pydantic dataclass) to validate/normalize LLM output (name, email, experience_level, skills list).
+If LLM output is malformed, fallback to local heuristics (parse_resume).
+Add retry/backoff and rate-limiting for LLM calls.
+Files: llm_utils.py, resume_utils.py.
+Effort: medium (1–2 days).
+Prompt engineering & cost control:
+
+Why: make LLM more precise and cheaper.
+What:
+Create a small, versioned set of prompts saved as constants or JSON files and unit-test them.
+Limit token usage (max tokens), and cache parsed results by resume hash to avoid duplicate LLM calls.
+Effort: small–medium.
+Local resume-parsing fallback improvements:
+
+Why: LLM may be unavailable or costly. Heuristics can be improved with regex and pretrained resume parsers.
+What:
+Add an optional rule-based or lightweight ML parser (e.g., pyresparser, or spaCy patterns) to extract name/phone/company/skills.
+Unit tests on resume.txt and sample PDFs/DOCX.
+Effort: medium.
+Data & Persistence
+
+DB schema & indexing:
+
+Why: performance and correctness — ensure constraints and indexes for frequent queries.
+What:
+Add UNIQUE constraint on username and email (if storing email).
+Index username and date on evaluations.
+Add explicit migrations (use alembic or a simple version table + migration scripts).
+Files: db_utils.py, add migrations/ folder.
+Effort: medium (1–2 days).
+Audit trails & privacy by design:
+
+Why: record who viewed/modified candidate data (useful for audits).
+What:
+Add audit_log table with actor, action, timestamp, object_type, object_id, diff.
+Provide admin view to inspect logs.
+Effort: medium.
+Testing, CI, and Developer Experience
+
+Unit & integration tests:
+
+Why: prevent regressions.
+What:
+Add pytest tests for parse_resume, llm_parse_resume (mock LLM), db_utils functions (using a temp SQLite file), and UI smoke tests (optional Selenium or Playwright).
+Add fixtures with sample resume.txt, small PDF, and DOCX.
+Effort: medium (2–3 days).
+CI pipeline:
+
+Why: ensure code quality on PRs.
+What:
+GitHub Actions to run lint (flake8/ruff), type checks (mypy), tests, and formatting (black).
+Effort: small–medium.
+User Experience and Product Enhancements
+
+Improve registration UX:
+
+Why: users expect predictable, fast behavior.
+What:
+Keep uploader outside form (done), but add explicit preview of parsed fields (st.json(st.session_state['parsed_resume'])) behind a debug toggle.
+Show progress indicator while parsing or waiting on LLM.
+Add confirmation modal before overwriting fields with parsed values.
+Effort: small.
+Candidate experience during evaluation:
+
+Why: reduce friction and confusion.
+What:
+Add ability to pause/resume evaluations, autosave answers to DB periodically, and show question progress visually.
+Improve timers (client-side syncing) to prevent accidental time loss.
+Effort: medium.
+Admin tools:
+
+Why: gives control over attempts, roles, and feedback.
+What:
+Add role management UI, export filters, bulk user import, and feedback triage with assignment.
+Effort: medium–large.
+Observability & Operations
+
+Logging and error tracking:
+
+Why: diagnose issues in production.
+What:
+Add structured logs with logging (JSON) and integrate Sentry for exceptions.
+Track LLM call latency, error counts, and costs.
+Effort: small.
+Metrics & health checks:
+
+Why: monitor service health.
+What:
+Expose simple Prometheus-style metrics (or push metrics to a monitoring service). Add a /health endpoint if packaged in a web server.
+Effort: small–medium.
+Performance & Cost
+
+Result caching:
+
+Why: reduce LLM costs and latency.
+What:
+Cache LLM parsing results keyed by resume hash (e.g., SHA256 of the bytes). TTL as needed. Use in-memory or DB table cache.
+Effort: small.
+Batch evaluation & async processing:
+
+Why: LLM evaluation might be slow; batching helps.
+What:
+Optionally process evaluations asynchronously (Celery/RQ) and notify user when complete. Keep UI responsive with progress indicator.
+Effort: large.
+Security & Compliance
+
+Rate limiting & abuse protection:
+
+Why: prevent abuse and runaway LLM costs.
+What:
+Limit per-user and global LLM calls; add monitoring and alerts for anomalous usage.
+Effort: small–medium.
+Data retention & deletion:
+
+Why: legal/regulatory compliance (GDPR).
+What:
+Implement data retention policy and "right to be forgotten" - allow admin to delete user and related evaluations.
+Effort: medium.
+Developer ergonomics
+
+Refactor to smaller modules (done partly):
+
+Why: improves code review and onboarding.
+What:
+Move functions into the created wrappers and gradually update imports across the codebase. Add a README.md describing module responsibilities and dev run steps (venv activation, pip install -r requirements.txt, streamlit run).
+Effort: small–medium.
+Local dev conveniences:
+
+Why: faster iteration.
+What:
+Add a Makefile or scripts/ with common commands: start, test, lint, migrate. Provide sample

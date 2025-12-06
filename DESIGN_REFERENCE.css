@@ -1,0 +1,101 @@
+/* Quick Design Reference for AI Evaluation System */
+
+/* ============================================
+   ANIMATIONS & EFFECTS USED
+   ============================================ */
+
+1. ENTRANCE ANIMATIONS - fadeInUp: Cards slide up and fade in on scroll - slideDown: Navbar slides down on page load - slideInRight: Alerts slide in from right 2. HOVER EFFECTS - Card lift: translateY(-5px) on hover - Button ripple: Expanding circle on click - Nav link underline: Width animation from center 3. CONTINUOUS ANIMATIONS - Particle float: Background particles moving up - Logo rotate: Slow 360° rotation - Stat bounce: Icons bouncing up and down - Progress shimmer: Light moving across bar - Timer pulse: Scale and opacity animation 4. MICRO-INTERACTIONS - Button press: Scale down slightly - Input focus: Border glow effect - Badge pulse: Subtle scale animation - Icon spin: Loading spinners
+/* ============================================
+   SYMBOLS & ICONS USED
+   ============================================ */
+
+EMOJI ICONS: 🤖 - AI/Robot (Logo, AI features) 🚀 - Launch/Start (Get Started, New Evaluation) 🔐 - Security (Login) ✨ - Magic/New (Registration, Features) 📊 - Analytics (Dashboard, Stats) ⏱️ - Timer (Question timer) ⏰ - Clock (Total timer) 💻 - Coding (Coding questions) 💭 - Thinking (Conceptual questions) 👋 - Welcome (Dashboard greeting) 📝 - Writing (Evaluations) ⭐ - Star (Ratings) 🏆 - Trophy (Achievements) ✅ - Success (Passed) 👍 - Good (Recommended) ⚠️ - Warning (Needs improvement) ❌ - Error (Failed) 🎉 - Celebration (Completion) 📈 - Growth (Progress) 🔊 - Sound (Text-to-speech) 🎤 - Microphone (Voice input) 👨‍💼 - Admin (Admin panel) 👥 - Users (User management) 💬 - Feedback (Comments) ☕ - Java (Java Developer) 🗄️ - Database (DB Admin) 🎨 - Design (Frontend Dev) 🚀 - DevOps (DevOps Engineer) 📊 - Data (Data Engineer) 🐍 - Python (Python Developer) FONT AWESOME ICONS: fa-rocket - Launch fa-sign-in-alt - Sign in fa-user - User profile fa-lock - Password fa-envelope - Email fa-briefcase - Job role fa-code - Programming fa-language - Language selection fa-info-circle - Information fa-play - Start fa-check - Submit fa-forward - Skip fa-microphone - Voice fa-volume-up - Audio fa-home - Home fa-sign-out-alt - Logout fa-plus-circle - Add new fa-user-shield - Admin fa-key - Admin password fa-shield-alt - Security
+/* ============================================
+   COLOR USAGE GUIDE
+   ============================================ */
+
+PRIMARY GRADIENT (Purple to Purple-Pink): - Main buttons - Headings - Logo - Links - Primary actions SECONDARY GRADIENT (Pink to Red): - Secondary buttons - Accents - Highlights - Alternative CTAs SUCCESS GRADIENT (Blue): - Success messages - Passed status - Positive feedback - Completion states WARNING GRADIENT (Orange to Yellow): - Warning messages - Medium scores - Attention items - Caution states GLASSMORPHISM: - Cards: rgba(255, 255, 255, 0.1) - Borders: rgba(255, 255, 255, 0.2) - Backdrop blur: 20px - Usage: All cards,
+navbar,
+modals
+/* ============================================
+   COMPONENT PATTERNS
+   ============================================ */
+
+1. STAT CARD - Icon (3rem, animated bounce) - Value (2.5rem, gradient text) - Label (uppercase, 0.9rem) - Hover: Lift+top border animation 2. PROGRESS BAR - Container: 8px height,
+rounded - Fill: Gradient background - Shimmer: Animated light overlay - Smooth width transition 3. BADGE - Padding: 0.25rem 0.75rem - Border radius: 20px (pill shape) - Uppercase text - Color-coded by status 4. TIMER - Monospace font - Large size (1.5rem) - Icon with pulse animation - Color changes by time remaining 5. FORM INPUT - Padding: 0.875rem 1rem - Border: 2px solid - Focus: Glow effect - Smooth transitions 6. BUTTON - Padding: 0.75rem 1.5rem - Rounded: 12px - Ripple effect on click - Icon+text layout - Hover: Lift+shadow
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+Desktop:>768px - Full grid layouts - Side-by-side elements - Larger fonts Mobile: ≤ 768px - Single column grids - Stacked elements - Smaller fonts - Simplified navigation
+/* ============================================
+   ANIMATION TIMING
+   ============================================ */
+
+Fast: 0.2s - Hover effects,
+clicks Normal: 0.3s - Transitions,
+fades Slow: 0.5s - Entrances,
+exits Very Slow: 2s+- Continuous animations
+/* ============================================
+   SPACING SCALE
+   ============================================ */
+
+XS: 0.5rem (8px) - Tight spacing SM: 1rem (16px) - Default spacing MD: 1.5rem (24px) - Section spacing LG: 2rem (32px) - Large gaps XL: 3rem (48px) - Major sections
+/* ============================================
+   TYPOGRAPHY SCALE
+   ============================================ */
+
+Hero Title: 3.5rem (56px) Section Title: 2.5rem (40px) Card Title: 1.5rem (24px) Body: 1rem (16px) Small: 0.9rem (14.4px) Tiny: 0.8rem (12.8px) Font Weights: Light: 300 Regular: 400 Medium: 500 Semibold: 600 Bold: 700 Extrabold: 800
+/* ============================================
+   SHADOW DEPTHS
+   ============================================ */
+
+SM: 0 2px 8px rgba(0, 0, 0, 0.1) MD: 0 4px 16px rgba(0, 0, 0, 0.2) LG: 0 8px 32px rgba(0, 0, 0, 0.3) GLOW: 0 0 20px rgba(102, 126, 234, 0.4)
+/* ============================================
+   BORDER RADIUS
+   ============================================ */
+
+SM: 8px - Small elements MD: 12px - Inputs,
+buttons LG: 16px - Cards XL: 24px - Large containers PILL: 20px - Badges CIRCLE: 50% - Icons,
+avatars
+/* ============================================
+   Z-INDEX LAYERS
+   ============================================ */
+
+Background: -1 (particles, gradients) Content: 0 (default) Navbar: 1000 Modals: 2000 Tooltips: 3000
+/* ============================================
+   ACCESSIBILITY FEATURES
+   ============================================ */
+
+- High contrast text - Focus indicators on all interactive elements - Semantic HTML structure - ARIA labels where needed - Keyboard navigation support - Screen reader friendly
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+- CSS animations (GPU accelerated) - Lazy loading for images - Minimal JavaScript - Optimized gradients - Efficient selectors - Reduced repaints
+/* ============================================
+   CUSTOMIZATION TIPS
+   ============================================ */
+
+1. Change Colors: - Edit CSS variables in :root - All colors update automatically 2. Adjust Animations: - Modify --transition-* variables - Change animation durations 3. Update Fonts: - Replace Google Fonts import - Update font-family in body 4. Modify Spacing: - Adjust --spacing-* variables - Consistent throughout app 5. Change Gradients: - Update gradient definitions - Use online gradient generators
+/* ============================================
+   BROWSER COMPATIBILITY
+   ============================================ */
+
+Tested on: ✅ Chrome 90+✅ Firefox 88+✅ Safari 14+✅ Edge 90+Features used: - CSS Grid - Flexbox - CSS Variables - Backdrop Filter - CSS Animations - Modern selectors
+/* ============================================
+   SPECIAL EFFECTS BREAKDOWN
+   ============================================ */
+
+GLASSMORPHISM: background: rgba(255, 255, 255, 0.1);
+backdrop-filter: blur(20px);
+border: 1px solid rgba(255, 255, 255, 0.2);
+
+GRADIENT TEXT: background: linear-gradient(...);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+
+RIPPLE EFFECT:::before pseudo-element Expand from center on click Fade out after expansion SHIMMER:::after pseudo-element Gradient overlay Translate animation PARTICLE FLOAT: Random positioning Vertical translation Opacity fade in/out Long duration (15-20s)
+/* ============================================
+   END OF DESIGN REFERENCE
+   ============================================ */

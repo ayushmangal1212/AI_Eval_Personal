@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - AI Evaluation System{% endblock %}
+
+{% block content %}
+<section style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
+    <div class="container">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-header text-center">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">👨‍💼</div>
+                    <h1 class="card-title" style="font-size: 2rem;">Admin Access</h1>
+                    <p class="card-subtitle">Authorized personnel only</p>
+                </div>
+
+                <div id="alert-container"></div>
+
+                <form id="adminLoginForm">
+                    <div class="form-group">
+                        <label class="form-label" for="username">
+                            <i class="fas fa-user-shield"></i> Admin Username
+                        </label>
+                        <input type="text" id="username" name="username" class="form-input"
+                            placeholder="Enter admin username" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">
+                            <i class="fas fa-key"></i> Admin Password
+                        </label>
+                        <input type="password" id="password" name="password" class="form-input"
+                            placeholder="Enter admin password" required autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                        <i class="fas fa-shield-alt"></i> Admin Sign In
+                        <span class="spinner" id="loginSpinner"
+                            style="display: none; width: 20px; height: 20px; margin-left: 10px;"></span>
+                    </button>
+                </form>
+
+                <div
+                    style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border);">
+                    <p style="color: var(--text-secondary);">
+                        Regular user?
+                        <a href="{{ url_for('login') }}"
+                            style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                            Login here
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const alertContainer = document.getElementById('alert-container');
+    const spinner = document.getElementById('loginSpinner');
+
+    function showAlert(message, type = 'error') {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        const icon = type === 'success' ? '✅' : '❌';
+
+        alertContainer.innerHTML = `
+            <div class="alert ${alertClass}">
+                <span style="font-size: 1.5rem;">${icon}</span>
+                <span>${message}</span>
+            </div>
+        `;
+
+        if (type === 'success') {
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 2000);
+        }
+    }
+
+    adminLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        spinner.style.display = 'inline-block';
+        adminLoginForm.querySelector('button[type="submit"]').disabled = true;
+
+        try {
+            const response = await fetch('{{ url_for("admin_login") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('Admin login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("admin_dashboard") }}';
+                }, 1000);
+            } else {
+                showAlert(data.message || 'Invalid admin credentials.');
+                spinner.style.display = 'none';
+                adminLoginForm.querySelector('button[type="submit"]').disabled = false;
+            }
+        } catch (error) {
+            showAlert('An error occurred. Please try again.');
+            spinner.style.display = 'none';
+            adminLoginForm.querySelector('button[type="submit"]').disabled = false;
+        }
+    });
+</script>
+{% endblock %}

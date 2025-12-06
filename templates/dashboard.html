@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AI Evaluation System{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <!-- Welcome Header -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="card-title" style="font-size: 2.5rem; margin-bottom: 0.5rem;">
+                        👋 Welcome back, {{ username }}!
+                    </h1>
+                    <p style="color: var(--text-secondary);">
+                        Ready to showcase your skills? Start a new evaluation or review your past performance.
+                    </p>
+                </div>
+                <a href="{{ url_for('new_evaluation') }}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> New Evaluation
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-3" style="margin-bottom: 3rem;">
+            <div class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-value">{{ history|length }}</div>
+                <div class="stat-label">Total Evaluations</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-value">
+                    {% if history %}
+                    {{ "%.1f"|format(history|map(attribute='percentage')|sum / history|length) }}%
+                    {% else %}
+                    0%
+                    {% endif %}
+                </div>
+                <div class="stat-label">Average Score</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-value">
+                    {% set passed = history|selectattr('percentage', 'ge', 60)|list|length %}
+                    {{ passed }}
+                </div>
+                <div class="stat-label">Passed Evaluations</div>
+            </div>
+        </div>
+
+        <!-- Evaluation History -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📊 Evaluation History</h2>
+                <p class="card-subtitle">Track your progress and review past assessments</p>
+            </div>
+
+            {% if history %}
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--glass-border);">
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Date</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Role</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Score</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Percentage</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Time</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Status</th>
+                            <th
+                                style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eval in history|reverse %}
+                        {% set eval_index = (history|length - loop.index) %}
+                        <tr style="border-bottom: 1px solid var(--glass-border); transition: var(--transition-fast);"
+                            onmouseover="this.style.background='var(--bg-card-hover)'"
+                            onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem;">
+                                {{ eval.date.split('T')[0] if 'T' in eval.date else eval.date[:10] }}
+                            </td>
+                            <td style="padding: 1rem;">
+                                <strong>{{ eval.role }}</strong>
+                            </td>
+                            <td style="padding: 1rem;">
+                                {{ eval.score }}/{{ eval.max_score }}
+                            </td>
+                            <td style="padding: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div class="progress-bar" style="width: 100px; height: 6px;">
+                                        <div class="progress-fill" style="width: {{ eval.percentage }}%;"></div>
+                                    </div>
+                                    <span style="font-weight: 600;">{{ "%.1f"|format(eval.percentage) }}%</span>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem;">
+                                {{ eval.time_taken if eval.time_taken else 'N/A' }}
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if eval.percentage >= 80 %}
+                                <span class="badge badge-success">✅ Excellent</span>
+                                {% elif eval.percentage >= 60 %}
+                                <span class="badge badge-warning">👍 Good</span>
+                                {% else %}
+                                <span class="badge badge-danger">⚠️ Needs Improvement</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <a href="{{ url_for('view_evaluation_results', eval_index=eval_index) }}"
+                                    class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    <i class="fas fa-eye"></i> View Results
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 5rem; margin-bottom: 1rem; opacity: 0.5;">📭</div>
+                <h3 style="color: var(--text-secondary); margin-bottom: 1rem;">No evaluations yet</h3>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">
+                    Start your first evaluation to see your results here
+                </p>
+                <a href="{{ url_for('new_evaluation') }}" class="btn btn-primary">
+                    <i class="fas fa-rocket"></i> Start First Evaluation
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animate stats on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const statValues = document.querySelectorAll('.stat-value');
+        statValues.forEach((stat, index) => {
+            stat.style.opacity = '0';
+            stat.style.transform = 'scale(0.5)';
+
+            setTimeout(() => {
+                stat.style.transition = 'all 0.5s ease';
+                stat.style.opacity = '1';
+                stat.style.transform = 'scale(1)';
+            }, index * 100);
+        });
+
+        // Animate progress bars
+        setTimeout(() => {
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        }, 500);
+    });
+</script>
+{% endblock %}

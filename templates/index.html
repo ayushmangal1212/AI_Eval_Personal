@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}AI Evaluation System - Home{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container hero-content">
+        <h1 class="hero-title">
+            🚀 AI-Powered Candidate Evaluation
+        </h1>
+        <p class="hero-subtitle">
+            Experience the future of technical interviews with our intelligent assessment platform.
+            Get real-time AI feedback, comprehensive scoring, and detailed performance analytics.
+        </p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">
+                <i class="fas fa-rocket"></i> Get Started
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </a>
+        </div>
+    </div>
+</section>
+
+<section style="padding: 4rem 0;">
+    <div class="container">
+        <h2 class="text-center text-gradient" style="font-size: 2.5rem; margin-bottom: 3rem;">
+            ✨ Why Choose Our Platform?
+        </h2>
+
+        <div class="grid grid-3">
+            <div class="stat-card">
+                <div class="stat-icon">🤖</div>
+                <div class="stat-value">AI-Powered</div>
+                <div class="stat-label">Smart Evaluation</div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Advanced DeepSeek AI analyzes answers with human-like understanding
+                </p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value">Real-Time</div>
+                <div class="stat-label">Instant Feedback</div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Get immediate scores and detailed feedback after each answer
+                </p>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">Analytics</div>
+                <div class="stat-label">Performance Tracking</div>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">
+                    Comprehensive reports with strengths and improvement areas
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="padding: 4rem 0; background: rgba(255,255,255,0.02);">
+    <div class="container">
+        <h2 class="text-center text-gradient" style="font-size: 2.5rem; margin-bottom: 3rem;">
+            🎯 Key Features
+        </h2>
+
+        <div class="grid grid-2">
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">💻</span>
+                    <h3 class="card-title" style="margin: 0;">Mixed Question Types</h3>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    Balanced mix of conceptual questions (60%) and coding challenges (40%)
+                    to comprehensively assess technical knowledge and practical skills.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">⏱️</span>
+                    <h3 class="card-title" style="margin: 0;">Timed Assessments</h3>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    10 minutes per question with a 50-minute total limit. Real-time countdown
+                    timers keep you on track throughout the evaluation.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">🔊</span>
+                    <h3 class="card-title" style="margin: 0;">Voice Assistant</h3>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    Text-to-speech reads questions aloud, and speech-to-text allows
+                    voice answers for a more natural interview experience.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">🌐</span>
+                    <h3 class="card-title" style="margin: 0;">Multi-Language Support</h3>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    Questions available in English, Hindi, Spanish, German, and French
+                    to accommodate diverse candidates worldwide.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">🎓</span>
+                    <h3 class="card-title" style="margin: 0;">Smart Recommendations</h3>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    AI-generated hiring decisions with detailed rationale based on
+                    performance across all evaluation criteria.
+                </p>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 2.5rem;">📜</span>
+                    <h3 class="card-title" style="margin: 0;">Complete History</h3>
+                </div>
+                <p style="color: var(--text-secondary);">
+                    Track all past evaluations with detailed breakdowns, scores,
+                    and feedback for continuous improvement.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="padding: 4rem 0;">
+    <div class="container">
+        <h2 class="text-center text-gradient" style="font-size: 2.5rem; margin-bottom: 3rem;">
+            👨‍💻 Supported Roles
+        </h2>
+
+        <div class="grid grid-3">
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">☕</div>
+                <h3 class="card-title">Java Developer</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Spring Boot, Concurrency, REST APIs, JPA
+                </p>
+            </div>
+
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🗄️</div>
+                <h3 class="card-title">Database Admin</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    PostgreSQL, MySQL, Performance Tuning
+                </p>
+            </div>
+
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🎨</div>
+                <h3 class="card-title">Frontend Developer</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    React, Vue, Angular, Responsive Design
+                </p>
+            </div>
+
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚀</div>
+                <h3 class="card-title">DevOps Engineer</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Docker, Kubernetes, CI/CD, Terraform
+                </p>
+            </div>
+
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                <h3 class="card-title">Data Engineer</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Spark, Airflow, ETL, Data Pipelines
+                </p>
+            </div>
+
+            <div class="card text-center">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🐍</div>
+                <h3 class="card-title">Python Developer</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Flask, Django, APIs, Data Structures
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="padding: 4rem 0; background: rgba(255,255,255,0.02);">
+    <div class="container text-center">
+        <h2 class="text-gradient" style="font-size: 2.5rem; margin-bottom: 1.5rem;">
+            Ready to Get Started?
+        </h2>
+        <p
+            style="color: var(--text-secondary); font-size: 1.2rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Join thousands of candidates who have already experienced the future of technical interviews.
+        </p>
+        <a href="{{ url_for('register') }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
+            <i class="fas fa-user-plus"></i> Create Free Account
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add entrance animations to cards
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.card, .stat-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'all 0.5s ease';
+        observer.observe(card);
+    });
+</script>
+{% endblock %}

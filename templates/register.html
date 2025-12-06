@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Register - AI Evaluation System{% endblock %}
+
+{% block content %}
+<section style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
+    <div class="container">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-header text-center">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">✨</div>
+                    <h1 class="card-title" style="font-size: 2rem;">Create Account</h1>
+                    <p class="card-subtitle">Join us and start your evaluation journey</p>
+                </div>
+
+                <div id="alert-container"></div>
+
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label class="form-label" for="username">
+                            <i class="fas fa-user"></i> Username
+                        </label>
+                        <input type="text" id="username" name="username" class="form-input"
+                            placeholder="Choose a unique username" required minlength="3" autocomplete="username">
+                        <small
+                            style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.25rem;">
+                            At least 3 characters
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="fullname">
+                            <i class="fas fa-id-card"></i> Full Name
+                        </label>
+                        <input type="text" id="fullname" name="fullname" class="form-input"
+                            placeholder="Enter your full name" autocomplete="name">
+                        <small
+                            style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.25rem;">
+                            Optional - will be auto-filled from resume
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input type="email" id="email" name="email" class="form-input"
+                            placeholder="your.email@example.com" required autocomplete="email">
+                    </div>
+
+                    <!-- Resume Upload Section (Optional) -->
+                    <div
+                        style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(240, 147, 251, 0.1) 100%); border: 2px dashed var(--primary); border-radius: var(--radius-md); padding: 1rem; margin: 1.5rem 0; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📄</div>
+                        <h4 style="color: var(--primary); margin-bottom: 0.5rem; font-size: 1rem;">Upload Resume
+                            (Optional)</h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 0.75rem; font-size: 0.85rem;">
+                            Auto-fill your profile from resume
+                        </p>
+
+                        <input type="file" id="resumeUpload" accept=".pdf,.docx,.txt" style="display: none;">
+                        <button type="button" onclick="document.getElementById('resumeUpload').click()"
+                            class="btn btn-secondary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                            <i class="fas fa-upload"></i> Choose File
+                        </button>
+
+                        <div id="resumeStatus" style="margin-top: 0.75rem; display: none;">
+                            <div class="spinner" style="width: 25px; height: 25px; margin: 0 auto;"></div>
+                            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.85rem;">Parsing
+                                resume...</p>
+                        </div>
+
+                        <div id="resumeResult" style="margin-top: 0.75rem; display: none; font-size: 0.85rem;">
+                            <!-- Resume parsing results will appear here -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="password" name="password" class="form-input"
+                            placeholder="Create a strong password" required minlength="6" autocomplete="new-password">
+                        <small
+                            style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.25rem;">
+                            At least 6 characters
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">
+                            <i class="fas fa-lock"></i> Confirm Password
+                        </label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input"
+                            placeholder="Re-enter your password" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                        <i class="fas fa-user-plus"></i> Create Account
+                        <span class="spinner" id="registerSpinner"
+                            style="display: none; width: 20px; height: 20px; margin-left: 10px;"></span>
+                    </button>
+                </form>
+
+                <div
+                    style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border);">
+                    <p style="color: var(--text-secondary);">
+                        Already have an account?
+                        <a href="{{ url_for('login') }}"
+                            style="color: var(--primary); text-decoration: none; font-weight: 600;">
+                            Sign in here
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const registerForm = document.getElementById('registerForm');
+    const alertContainer = document.getElementById('alert-container');
+    const spinner = document.getElementById('registerSpinner');
+    let parsedResumeData = null;
+
+    function showAlert(message, type = 'error') {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        const icon = type === 'success' ? '✅' : '❌';
+
+        alertContainer.innerHTML = `
+            <div class="alert ${alertClass}">
+                <span style="font-size: 1.5rem;">${icon}</span>
+                <span>${message}</span>
+            </div>
+        `;
+
+        if (type === 'success') {
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 2000);
+        }
+    }
+
+    // Resume upload handler
+    document.getElementById('resumeUpload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('resumeStatus').style.display = 'block';
+        document.getElementById('resumeResult').style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('resume', file);
+
+        try {
+            const response = await fetch('/api/parse-resume', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            document.getElementById('resumeStatus').style.display = 'none';
+
+            if (result.success) {
+                const data = result.data;
+                parsedResumeData = data;
+
+                // Auto-fill full name
+                if (data.name && !document.getElementById('fullname').value) {
+                    document.getElementById('fullname').value = data.name;
+                    document.getElementById('fullname').style.borderColor = 'var(--success)';
+                    setTimeout(() => {
+                        document.getElementById('fullname').style.borderColor = '';
+                    }, 3000);
+                }
+
+                // Auto-fill email
+                if (data.email && !document.getElementById('email').value) {
+                    document.getElementById('email').value = data.email;
+                    document.getElementById('email').style.borderColor = 'var(--success)';
+                    setTimeout(() => {
+                        document.getElementById('email').style.borderColor = '';
+                    }, 3000);
+                }
+
+                // Show success message
+                const resultHTML = `
+                    <div class="alert alert-success" style="text-align: left; padding: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span style="font-size: 1.25rem;">✅</span>
+                            <strong style="font-size: 0.9rem;">Resume Parsed!</strong>
+                        </div>
+                        <div style="font-size: 0.8rem; line-height: 1.5;">
+                            <p style="margin: 0.25rem 0;"><strong>Name:</strong> ${data.name || 'Not found'}</p>
+                            <p style="margin: 0.25rem 0;"><strong>Email:</strong> ${data.email || 'Not found'}</p>
+                            <p style="margin: 0.25rem 0;"><strong>Experience:</strong> ${data.experience_years || 0} years</p>
+                            <p style="margin: 0.25rem 0;"><strong>Skills:</strong> ${data.skills.length} found</p>
+                            ${data.skills.length > 0 ? `<p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.25rem 0;">${data.skills.slice(0, 8).join(', ')}${data.skills.length > 8 ? '...' : ''}</p>` : ''}
+                            <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--primary);">
+                                ℹ️ This data will be saved to your profile
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('resumeResult').innerHTML = resultHTML;
+                document.getElementById('resumeResult').style.display = 'block';
+
+            } else {
+                document.getElementById('resumeResult').innerHTML = `
+                    <div class="alert alert-error" style="padding: 0.75rem;">
+                        <span style="font-size: 1.25rem;">❌</span>
+                        <span style="font-size: 0.85rem;">Failed to parse resume</span>
+                    </div>
+                `;
+                document.getElementById('resumeResult').style.display = 'block';
+            }
+
+        } catch (error) {
+            document.getElementById('resumeStatus').style.display = 'none';
+            document.getElementById('resumeResult').innerHTML = `
+                <div class="alert alert-error" style="padding: 0.75rem;">
+                    <span style="font-size: 1.25rem;">❌</span>
+                    <span style="font-size: 0.85rem;">Error uploading resume</span>
+                </div>
+            `;
+            document.getElementById('resumeResult').style.display = 'block';
+        }
+    });
+
+    // Form submission handler
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const fullname = document.getElementById('fullname').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        // Validation
+        if (password !== confirmPassword) {
+            showAlert('Passwords do not match!');
+            return;
+        }
+
+        if (password.length < 6) {
+            showAlert('Password must be at least 6 characters long!');
+            return;
+        }
+
+        if (username.length < 3) {
+            showAlert('Username must be at least 3 characters long!');
+            return;
+        }
+
+        // Show loading state
+        spinner.style.display = 'inline-block';
+        registerForm.querySelector('button[type="submit"]').disabled = true;
+
+        try {
+            const registrationData = {
+                username,
+                fullname,
+                email,
+                password,
+                resume_data: parsedResumeData
+            };
+
+            const response = await fetch('{{ url_for("register") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(registrationData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showAlert('Registration successful! Redirecting to login...', 'success');
+                setTimeout(() => {
+                    window.location.href = '{{ url_for("login") }}';
+                }, 1500);
+            } else {
+                showAlert(data.message || 'Registration failed. Please try again.');
+                spinner.style.display = 'none';
+                registerForm.querySelector('button[type="submit"]').disabled = false;
+            }
+        } catch (error) {
+            showAlert('An error occurred. Please try again.');
+            spinner.style.display = 'none';
+            registerForm.querySelector('button[type="submit"]').disabled = false;
+        }
+    });
+
+    // Add floating animation to the sparkle icon
+    const sparkleIcon = document.querySelector('.card-header > div');
+    setInterval(() => {
+        sparkleIcon.style.transform = 'rotate(15deg) scale(1.1)';
+        setTimeout(() => {
+            sparkleIcon.style.transform = 'rotate(-15deg) scale(1)';
+        }, 500);
+    }, 2000);
+    sparkleIcon.style.transition = 'transform 0.5s ease';
+
+    // Password strength indicator
+    const passwordInput = document.getElementById('password');
+    passwordInput.addEventListener('input', (e) => {
+        const password = e.target.value;
+        const strength = getPasswordStrength(password);
+
+        if (password.length > 0) {
+            const color = strength === 'strong' ? 'var(--success)' :
+                strength === 'medium' ? 'var(--warning)' : 'var(--danger)';
+            passwordInput.style.borderColor = color;
+        } else {
+            passwordInput.style.borderColor = 'var(--glass-border)';
+        }
+    });
+
+    function getPasswordStrength(password) {
+        if (password.length >= 10 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) {
+            return 'strong';
+        } else if (password.length >= 6) {
+            return 'medium';
+        }
+        return 'weak';
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,375 @@
+# 📊 View Past Evaluation Results - Implementation Guide
+
+## ✅ What Was Implemented
+
+Added functionality for users to view detailed results of their past evaluations from the dashboard.
+
+---
+
+## 🔌 Backend (app.py)
+
+### **New Route Added**:
+
+```python
+@app.route('/evaluation/results/<int:eval_index>')
+@login_required
+def view_evaluation_results(eval_index):
+    """View detailed results of a past evaluation"""
+    username = session.get('username')
+    history = db_utils.load_eval_history()
+    user_history = history.get(username, [])
+    
+    if eval_index < 0 or eval_index >= len(user_history):
+        return redirect(url_for('dashboard'))
+    
+    evaluation = user_history[eval_index]
+    return render_template('evaluation_results.html', 
+                         username=username, 
+                         evaluation=evaluation,
+                         eval_index=eval_index)
+```
+
+---
+
+## 🎨 Frontend Changes
+
+### **1. Dashboard Table - Add "Actions" Column**
+
+In `templates/dashboard.html`, add this column header:
+
+```html
+<th style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600;">
+    Actions
+</th>
+```
+
+### **2. Add "View Results" Button for Each Row**
+
+In the table body loop, add:
+
+```html
+{% for eval in history|reverse %}
+{% set eval_index = (history|length - loop.index) %}
+<tr>
+    <!-- existing columns -->
+    
+    <td style="padding: 1rem; text-align: center;">
+        <a href="{{ url_for('view_evaluation_results', eval_index=eval_index) }}" 
+           class="btn btn-outline" 
+           style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+            <i class="fas fa-eye"></i> View Results
+        </a>
+    </td>
+</tr>
+{% endfor %}
+```
+
+---
+
+## 📄 Create Results Template
+
+Create `templates/evaluation_results.html`:
+
+```html
+{% extends "base.html" %}
+
+{% block title %}Evaluation Results - AI Evaluation System{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <!-- Header -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="card-title" style="font-size: 2rem;">
+                        📊 Evaluation Results
+                    </h1>
+                    <p style="color: var(--text-secondary);">
+                        {{ evaluation.role }} - {{ evaluation.date.split('T')[0] if 'T' in evaluation.date else evaluation.date[:10] }}
+                    </p>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Overall Stats -->
+        <div class="grid grid-3" style="margin-bottom: 3rem;">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">{{ evaluation.score }}/{{ evaluation.max_score }}</div>
+                <div class="stat-label">Total Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value">{{ "%.1f"|format(evaluation.percentage) }}%</div>
+                <div class="stat-label">Percentage</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-value">{{ evaluation.time_taken if evaluation.time_taken else 'N/A' }}</div>
+                <div class="stat-label">Time Taken</div>
+            </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div class="card" style="text-align: center; margin-bottom: 2rem;">
+            {% if evaluation.percentage >= 80 %}
+            <h2 style="color: var(--success); margin-bottom: 0.5rem;">✅ Excellent Performance!</h2>
+            <p style="color: var(--text-secondary);">You demonstrated strong knowledge and skills.</p>
+            {% elif evaluation.percentage >= 60 %}
+            <h2 style="color: var(--warning); margin-bottom: 0.5rem;">👍 Good Job!</h2>
+            <p style="color: var(--text-secondary);">Solid performance with room for improvement.</p>
+            {% else %}
+            <h2 style="color: var(--danger); margin-bottom: 0.5rem;">⚠️ Needs Improvement</h2>
+            <p style="color: var(--text-secondary);">Keep practicing to strengthen your skills.</p>
+            {% endif %}
+        </div>
+
+        <!-- Detailed Question Results -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📝 Detailed Question-by-Question Results</h2>
+                <p class="card-subtitle">Review your answers and AI feedback</p>
+            </div>
+
+            {% if evaluation.qa_history %}
+            {% for qa in evaluation.qa_history %}
+            <div style="border-left: 4px solid var(--primary); padding: 1.5rem; margin-bottom: 2rem; background: rgba(255,255,255,0.02); border-radius: 8px;">
+                <h3 style="color: var(--primary); margin-bottom: 1rem;">
+                    Question {{ loop.index }}: {{ qa.question }}
+                </h3>
+                
+                <div style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <strong style="color: var(--text-secondary);">Your Answer:</strong>
+                    <p style="margin-top: 0.5rem; white-space: pre-wrap;">{{ qa.answer }}</p>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
+                    <div style="font-size: 1.5rem; font-weight: bold; color: {% if qa.score >= 16 %}var(--success){% elif qa.score >= 12 %}var(--warning){% else %}var(--danger){% endif %};">
+                        {{ qa.score }}/20
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ (qa.score/20)*100 }}%;"></div>
+                        </div>
+                    </div>
+                    <div style="font-size: 1.2rem; color: var(--text-secondary);">
+                        {{ "%.0f"|format((qa.score/20)*100) }}%
+                    </div>
+                </div>
+                
+                <div style="background: rgba(79, 172, 254, 0.1); border: 1px solid var(--success); border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                    <strong style="color: var(--success);">AI Feedback:</strong>
+                    <p style="margin-top: 0.5rem;">{{ qa.feedback }}</p>
+                </div>
+                
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                        ❓ Disagree with this evaluation?
+                    </p>
+                    <button class="btn btn-outline" style="font-size: 0.9rem;" 
+                            onclick="openFeedbackForm({{ loop.index0 }}, '{{ qa.question }}', '{{ qa.answer }}', {{ qa.score }}, '{{ qa.feedback }}')">
+                        <i class="fas fa-comment"></i> Provide Feedback
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                No detailed question history available for this evaluation.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">
+                <i class="fas fa-home"></i> Back to Dashboard
+            </a>
+            <a href="{{ url_for('new_evaluation') }}" class="btn btn-primary">
+                <i class="fas fa-redo"></i> Take Another Evaluation
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Feedback Modal Placeholder -->
+<div id="feedbackModalContainer"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Feedback form functions (same as in evaluation.html)
+function openFeedbackForm(questionIndex, questionText, userAnswer, aiScore, aiFeedback) {
+    const modal = document.createElement('div');
+    modal.id = 'feedbackModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+        <div class="card" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div class="card-header">
+                <h2 class="card-title">📢 Submit Feedback</h2>
+                <p class="card-subtitle">Help us improve AI evaluation accuracy</p>
+            </div>
+            
+            <div style="margin: 1.5rem 0;">
+                <p style="color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Question:</strong> ${questionText}
+                </p>
+                <p style="color: var(--text-secondary);">
+                    <strong>AI Score:</strong> ${aiScore}/20 (${Math.round((aiScore/20)*100)}%)
+                </p>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">What score do you think you deserved?</label>
+                <input type="number" id="expectedScore" class="form-input" min="0" max="20" value="${aiScore}" />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Why do you disagree with the AI evaluation?</label>
+                <textarea id="feedbackText" class="form-textarea" rows="5" 
+                    placeholder="Explain why you believe your answer deserves a different score..."></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeFeedbackForm()">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="submitFeedback('${questionText}', '${userAnswer}', ${aiScore}, '${aiFeedback}')">
+                    <i class="fas fa-paper-plane"></i> Submit Feedback
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('feedbackModalContainer').appendChild(modal);
+}
+
+function closeFeedbackForm() {
+    const modal = document.getElementById('feedbackModal');
+    if (modal) modal.remove();
+}
+
+async function submitFeedback(questionText, userAnswer, aiScore, aiFeedback) {
+    const expectedScore = document.getElementById('expectedScore').value;
+    const feedbackText = document.getElementById('feedbackText').value;
+    
+    if (!feedbackText.trim()) {
+        alert('Please provide your feedback');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/submit-feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question_id: `q${Date.now()}`,
+                question_text: questionText,
+                user_answer: userAnswer,
+                ai_score: aiScore,
+                ai_feedback: aiFeedback,
+                user_feedback: feedbackText,
+                user_expected_score: parseInt(expectedScore)
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✅ Thank you! Your feedback has been submitted and will be reviewed.');
+            closeFeedbackForm();
+        } else {
+            alert('❌ Failed to submit feedback. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        alert('❌ An error occurred. Please try again.');
+    }
+}
+
+// Animate progress bars on load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 100);
+        });
+    }, 300);
+});
+</script>
+{% endblock %}
+```
+
+---
+
+## 🎯 User Flow
+
+```
+1. User logs in
+   ↓
+2. Goes to Dashboard
+   ↓
+3. Sees evaluation history table
+   ↓
+4. Clicks "View Results" on any evaluation
+   ↓
+5. Sees detailed results page:
+   - Overall score
+   - Per-question breakdown
+   - AI feedback for each question
+   - Option to submit feedback
+   ↓
+6. Can provide feedback on any question
+   ↓
+7. Returns to dashboard or takes new evaluation
+```
+
+---
+
+## ✨ Features
+
+✅ **View Past Results** - Click "View Results" button  
+✅ **Detailed Breakdown** - See each question, answer, and feedback  
+✅ **Visual Progress** - Progress bars for each question  
+✅ **Submit Feedback** - Challenge AI evaluation if needed  
+✅ **Easy Navigation** - Back to dashboard or take new evaluation  
+
+---
+
+## 🚀 Implementation Steps
+
+1. ✅ **Backend route added** to `app.py`
+2. **Update `dashboard.html`**:
+   - Add "Actions" column header
+   - Add "View Results" button in each row
+3. **Create `evaluation_results.html`** (template provided above)
+4. **Test the flow**:
+   - Complete an evaluation
+   - Go to dashboard
+   - Click "View Results"
+   - Review detailed results
+   - Submit feedback
+
+---
+
+**Users can now view detailed results of all past evaluations!** 🎉

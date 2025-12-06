@@ -1,0 +1,158 @@
+RAHUL SHARMA
+Senior Python Developer
+
+Email: rahul.sharma@email.com
+Phone: +91-9876543210
+Location: Bangalore, Karnataka, India
+LinkedIn: linkedin.com/in/rahulsharma
+GitHub: github.com/rahulsharma
+
+================================================================================
+PROFESSIONAL SUMMARY
+================================================================================
+
+Highly skilled Python Developer with 5+ years of experience in designing and 
+developing scalable web applications, RESTful APIs, and microservices. Expertise 
+in Django, Flask, FastAPI, and cloud technologies. Proven track record of 
+delivering high-quality solutions in agile environments.
+
+================================================================================
+TECHNICAL SKILLS
+================================================================================
+
+Programming Languages:
+  • Python, JavaScript, SQL, Bash
+
+Web Frameworks:
+  • Django, Flask, FastAPI, Django REST Framework
+
+Frontend Technologies:
+  • React, HTML5, CSS3, Bootstrap, jQuery
+
+Databases:
+  • PostgreSQL, MySQL, MongoDB, Redis
+
+Cloud & DevOps:
+  • AWS (EC2, S3, Lambda, RDS), Docker, Kubernetes, Jenkins, CI/CD
+
+Tools & Technologies:
+  • Git, GitHub, GitLab, Jira, Postman, Swagger
+
+Testing:
+  • pytest, unittest, Selenium, Jest
+
+Other Skills:
+  • REST APIs, GraphQL, Microservices, Agile/Scrum, TDD
+
+================================================================================
+PROFESSIONAL EXPERIENCE
+================================================================================
+
+Senior Python Developer
+Tech Solutions Pvt Ltd, Bangalore
+June 2021 - Present
+
+  • Developed and maintained 15+ RESTful APIs using Django REST Framework 
+    serving 100K+ daily requests
+  • Implemented microservices architecture using Docker and Kubernetes, 
+    improving system scalability by 40%
+  • Led a team of 4 developers in building an e-commerce platform handling 
+    50K+ transactions daily
+  • Optimized database queries reducing response time by 60%
+  • Integrated payment gateways (Razorpay, Stripe) and third-party APIs
+  • Implemented CI/CD pipelines using Jenkins and GitLab CI
+  • Conducted code reviews and mentored junior developers
+
+Python Developer
+Digital Innovations Inc, Pune
+January 2019 - May 2021
+
+  • Built web applications using Django and Flask frameworks
+  • Developed RESTful APIs for mobile and web applications
+  • Implemented user authentication and authorization using JWT
+  • Created automated test suites achieving 85% code coverage
+  • Collaborated with frontend team using React for seamless integration
+  • Deployed applications on AWS EC2 and managed RDS databases
+  • Participated in agile sprints and daily standups
+
+Junior Python Developer
+StartUp Tech, Bangalore
+July 2017 - December 2018
+
+  • Developed Python scripts for data processing and automation
+  • Built web scrapers using BeautifulSoup and Scrapy
+  • Created data visualization dashboards using Plotly and Dash
+  • Worked on Django-based CRM system
+  • Fixed bugs and implemented new features based on user feedback
+
+================================================================================
+EDUCATION
+================================================================================
+
+Bachelor of Technology in Computer Science
+VTU University, Bangalore
+2013 - 2017
+CGPA: 8.5/10
+
+================================================================================
+CERTIFICATIONS
+================================================================================
+
+  • AWS Certified Developer - Associate (2022)
+  • Python for Data Science - Coursera (2021)
+  • Docker Certified Associate (2020)
+  • Certified Scrum Master (CSM) (2019)
+
+================================================================================
+PROJECTS
+================================================================================
+
+E-Commerce Platform
+  • Built scalable e-commerce platform using Django and React
+  • Implemented payment integration, inventory management, and order tracking
+  • Technologies: Django, PostgreSQL, Redis, AWS, Docker
+  • Handled 50K+ daily users with 99.9% uptime
+
+Task Management API
+  • Developed RESTful API for task management system
+  • Implemented real-time notifications using WebSockets
+  • Technologies: FastAPI, MongoDB, Redis, Docker
+  • Achieved response time < 100ms for 95% of requests
+
+Data Analytics Dashboard
+  • Created interactive dashboard for business analytics
+  • Implemented data pipelines for ETL processes
+  • Technologies: Python, Pandas, Plotly, PostgreSQL
+  • Processed 1M+ records daily
+
+================================================================================
+ACHIEVEMENTS
+================================================================================
+
+  • Employee of the Year 2022 at Tech Solutions Pvt Ltd
+  • Reduced application deployment time by 70% through automation
+  • Improved API performance by 60% through optimization
+  • Successfully delivered 10+ projects on time and within budget
+  • Mentored 8+ junior developers
+
+================================================================================
+LANGUAGES
+================================================================================
+
+  • English - Fluent
+  • Hindi - Native
+  • Kannada - Intermediate
+
+================================================================================
+INTERESTS
+================================================================================
+
+  • Open Source Contribution
+  • Technical Blogging
+  • Competitive Programming
+  • Cloud Architecture
+  • Machine Learning
+
+================================================================================
+
+References available upon request

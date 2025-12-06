@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AI Evaluation System{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <!-- Admin Header -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 class="card-title" style="font-size: 2.5rem; margin-bottom: 0.5rem;">
+                        👨‍💼 Admin Dashboard
+                    </h1>
+                    <p style="color: var(--text-secondary);">
+                        Manage users, view evaluations, and monitor system performance
+                    </p>
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-3" style="margin-bottom: 3rem;">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ users|length }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📝</div>
+                <div class="stat-value">
+                    {% set total_evals = namespace(count=0) %}
+                    {% for user, evals in history.items() %}
+                    {% set total_evals.count = total_evals.count + evals|length %}
+                    {% endfor %}
+                    {{ total_evals.count }}
+                </div>
+                <div class="stat-label">Total Evaluations</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-value">{{ feedback|length }}</div>
+                <div class="stat-label">Feedback Entries</div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h2 class="card-title">👥 Registered Users</h2>
+                <p class="card-subtitle">Manage user accounts and permissions</p>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--glass-border);">
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Username</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Email</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Created At</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Evaluations</th>
+                            <th
+                                style="padding: 1rem; text-align: center; color: var(--text-secondary); font-weight: 600;">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for username, user_data in users.items() %}
+                        <tr style="border-bottom: 1px solid var(--glass-border); transition: var(--transition-fast);"
+                            onmouseover="this.style.background='var(--bg-card-hover)'"
+                            onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem;"><strong>{{ username }}</strong></td>
+                            <td style="padding: 1rem;">{{ user_data.email if user_data.email else 'N/A' }}</td>
+                            <td style="padding: 1rem;">
+                                {{ user_data.created_at.split('T')[0] if user_data.created_at and 'T' in
+                                user_data.created_at else 'N/A' }}
+                            </td>
+                            <td style="padding: 1rem;">
+                                <span class="badge badge-success">
+                                    {{ history[username]|length if username in history else 0 }}
+                                </span>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                                    <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                        onclick="viewUserProfile('{{ username }}')">
+                                        <i class="fas fa-user"></i> Profile
+                                    </button>
+                                    <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                        onclick="resetUserAttempts('{{ username }}')">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                    <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"
+                                        onclick="viewUserEvaluations('{{ username }}')">
+                                        <i class="fas fa-chart-bar"></i> Evals
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Evaluations -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📊 Recent Evaluations</h2>
+                <p class="card-subtitle">Latest assessment results across all users</p>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--glass-border);">
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                User</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Date</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Role</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Score</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Percentage</th>
+                            <th
+                                style="padding: 1rem; text-align: left; color: var(--text-secondary); font-weight: 600;">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set all_evals = [] %}
+                        {% for username, evals in history.items() %}
+                        {% for eval in evals %}
+                        {% set _ = all_evals.append({'username': username, 'eval': eval}) %}
+                        {% endfor %}
+                        {% endfor %}
+
+                        {% for item in all_evals|reverse %}
+                        <tr style="border-bottom: 1px solid var(--glass-border); transition: var(--transition-fast);"
+                            onmouseover="this.style.background='var(--bg-card-hover)'"
+                            onmouseout="this.style.background='transparent'">
+                            <td style="padding: 1rem;"><strong>{{ item.username }}</strong></td>
+                            <td style="padding: 1rem;">
+                                {{ item.eval.date.split('T')[0] if 'T' in item.eval.date else item.eval.date[:10] }}
+                            </td>
+                            <td style="padding: 1rem;">{{ item.eval.role }}</td>
+                            <td style="padding: 1rem;">{{ item.eval.score }}/{{ item.eval.max_score }}</td>
+                            <td style="padding: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div class="progress-bar" style="width: 100px; height: 6px;">
+                                        <div class="progress-fill" style="width: {{ item.eval.percentage }}%;"></div>
+                                    </div>
+                                    <span style="font-weight: 600;">{{ "%.1f"|format(item.eval.percentage) }}%</span>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if item.eval.percentage >= 80 %}
+                                <span class="badge badge-success">✅ Excellent</span>
+                                {% elif item.eval.percentage >= 60 %}
+                                <span class="badge badge-warning">👍 Good</span>
+                                {% else %}
+                                <span class="badge badge-danger">⚠️ Needs Improvement</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modals Container -->
+<div id="modalContainer"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animate stats on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const statValues = document.querySelectorAll('.stat-value');
+        statValues.forEach((stat, index) => {
+            stat.style.opacity = '0';
+            stat.style.transform = 'scale(0.5)';
+
+            setTimeout(() => {
+                stat.style.transition = 'all 0.5s ease';
+                stat.style.opacity = '1';
+                stat.style.transform = 'scale(1)';
+            }, index * 100);
+        });
+    });
+
+    // View User Profile
+    async function viewUserProfile(username) {
+        try {
+            const response = await fetch(`/api/admin/user/${username}/profile`);
+            const data = await response.json();
+
+            if (data.success) {
+                const profile = data.profile;
+                showModal('User Profile', `
+                    <div style="text-align: left;">
+                        <p><strong>Username:</strong> ${profile.username}</p>
+                        <p><strong>Name:</strong> ${profile.name || 'N/A'}</p>
+                        <p><strong>Email:</strong> ${profile.email || 'N/A'}</p>
+                        <p><strong>Experience:</strong> ${profile.experience || 'N/A'}</p>
+                        <p><strong>Skills:</strong> ${profile.skills.join(', ') || 'None'}</p>
+                        <p><strong>Created:</strong> ${profile.created_at}</p>
+                        <p><strong>Attempts:</strong> ${profile.eval_taken_counts || '0'}</p>
+                    </div>
+                `);
+            } else {
+                alert('Failed to load profile');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error loading profile');
+        }
+    }
+
+    // Reset User Attempts
+    async function resetUserAttempts(username) {
+        if (!confirm(`Reset evaluation attempts for ${username}?`)) return;
+
+        try {
+            const response = await fetch(`/api/admin/user/${username}/reset-attempts`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(`✅ ${data.message}`);
+                location.reload();
+            } else {
+                alert(`❌ ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error resetting attempts');
+        }
+    }
+
+    // View User Evaluations
+    async function viewUserEvaluations(username) {
+        try {
+            const response = await fetch(`/api/admin/user/${username}/evaluations`);
+            const data = await response.json();
+
+            if (data.success) {
+                const evals = data.evaluations;
+                let html = '<div style="max-height: 400px; overflow-y: auto;">';
+
+                if (evals.length === 0) {
+                    html += '<p>No evaluations yet</p>';
+                } else {
+                    evals.forEach(eval => {
+                        html += `
+                            <div style="border: 1px solid var(--glass-border); padding: 1rem; margin-bottom: 1rem; border-radius: 8px;">
+                                <p><strong>Role:</strong> ${eval.role}</p>
+                                <p><strong>Score:</strong> ${eval.score}/${eval.max_score} (${eval.percentage.toFixed(1)}%)</p>
+                                <p><strong>Date:</strong> ${eval.date.split('T')[0]}</p>
+                                <p><strong>Time:</strong> ${eval.time_taken || 'N/A'}</p>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += '</div>';
+                showModal(`Evaluations for ${username}`, html);
+            } else {
+                alert('Failed to load evaluations');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error loading evaluations');
+        }
+    }
+
+    // Show Modal
+    function showModal(title, content) {
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        `;
+
+        modal.innerHTML = `
+            <div class="card" style="max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                <div class="card-header">
+                    <h2 class="card-title">${title}</h2>
+                </div>
+                <div style="padding: 1.5rem;">
+                    ${content}
+                </div>
+                <div style="padding: 1rem; text-align: right; border-top: 1px solid var(--glass-border);">
+                    <button class="btn btn-primary" onclick="closeModal()">Close</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('modalContainer').appendChild(modal);
+    }
+
+    // Close Modal
+    function closeModal() {
+        document.getElementById('modalContainer').innerHTML = '';
+    }
+</script>
+{% endblock %}
